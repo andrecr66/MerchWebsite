@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "2OE4W5wx0rz2rfroCt5/7dL0/MPkzWFINBI2as5OCaI=",
+  "Source": "MerchWebsite.API",
+  "BasePath": "_content/MerchWebsite.API",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}

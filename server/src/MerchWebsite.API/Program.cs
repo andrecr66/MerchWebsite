@@ -1,7 +1,7 @@
-var builder = WebApplication.CreateBuilder(args);
+using MerchWebsite.API.Data; // Moved using statement
+using Microsoft.EntityFrameworkCore; // Moved using statement
 
-using MerchWebsite.API.Data; // Add this using statement
-using Microsoft.EntityFrameworkCore; // Add this using statement
+var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
