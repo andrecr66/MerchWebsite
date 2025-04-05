@@ -1,5 +1,7 @@
-using MerchWebsite.API.Data; // Moved using statement
-using Microsoft.EntityFrameworkCore; // Moved using statement
+using MerchWebsite.API.Data;
+using MerchWebsite.API.Entities; // Add this for User entity
+using Microsoft.AspNetCore.Identity; // Add this for Identity services
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +11,16 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
+
+// Configure Identity services
+builder.Services.AddIdentity<User, IdentityRole>(options =>
+{
+    // Configure Identity options here if needed (e.g., password requirements)
+    // options.Password.RequireDigit = true;
+    // options.Password.RequiredLength = 8;
+})
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders(); // Add token providers for features like password reset
 
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi

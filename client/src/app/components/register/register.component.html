@@ -1,0 +1,54 @@
+<h2>Register</h2>
+
+<form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+    <div>
+        <label for="username">Username:</label>
+        <input id="username" type="text" formControlName="username">
+        <div
+            *ngIf="registerForm.controls['username'].invalid && (registerForm.controls['username'].dirty || registerForm.controls['username'].touched)">
+            <small *ngIf="registerForm.controls['username'].errors?.['required']" style="color: red;">Username is
+                required.</small>
+        </div>
+    </div>
+
+    <div>
+        <label for="email">Email:</label>
+        <input id="email" type="email" formControlName="email">
+        <div
+            *ngIf="registerForm.controls['email'].invalid && (registerForm.controls['email'].dirty || registerForm.controls['email'].touched)">
+            <small *ngIf="registerForm.controls['email'].errors?.['required']" style="color: red;">Email is
+                required.</small>
+            <small *ngIf="registerForm.controls['email'].errors?.['email']" style="color: red;">Please enter a valid
+                email address.</small>
+        </div>
+    </div>
+
+    <div>
+        <label for="password">Password:</label>
+        <input id="password" type="password" formControlName="password">
+        <div
+            *ngIf="registerForm.controls['password'].invalid && (registerForm.controls['password'].dirty || registerForm.controls['password'].touched)">
+            <small *ngIf="registerForm.controls['password'].errors?.['required']" style="color: red;">Password is
+                required.</small>
+            <small *ngIf="registerForm.controls['password'].errors?.['pattern']" style="color: red;">Password must be
+                4-8 characters and include uppercase, lowercase, and a number.</small>
+        </div>
+    </div>
+
+    <!-- Display general error messages -->
+    <div *ngIf="error" style="color: red; margin-top: 10px;">
+        {{ error }}
+    </div>
+
+    <!-- Display success message -->
+    <div *ngIf="successMessage" style="color: green; margin-top: 10px;">
+        {{ successMessage }}
+    </div>
+
+    <button type="submit" [disabled]="isLoading || registerForm.invalid">
+        {{ isLoading ? 'Registering...' : 'Register' }}
+    </button>
+</form>
+
+<!-- Link to login page -->
+<p>Already have an account? <a routerLink="/login">Login here</a></p>

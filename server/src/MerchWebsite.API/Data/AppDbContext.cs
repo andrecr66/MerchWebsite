@@ -1,9 +1,12 @@
 using MerchWebsite.API.Entities; // To access the Product entity
+// using Microsoft.AspNetCore.Identity; // Remove this line
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore; // Add this for IdentityDbContext
 using Microsoft.EntityFrameworkCore;
 
 namespace MerchWebsite.API.Data
 {
-    public class AppDbContext : DbContext
+    // Inherit from IdentityDbContext<User> - let it infer Role and Key type
+    public class AppDbContext : IdentityDbContext<User>
     {
         // Constructor that accepts DbContextOptions, allowing configuration (like connection string)
         // to be passed in from Program.cs (dependency injection)
@@ -17,8 +20,8 @@ namespace MerchWebsite.API.Data
         // and the Product entity configuration.
         public DbSet<Product> Products { get; set; }
 
-        // We can add more DbSets here for other entities later (e.g., Users, Orders)
-        // public DbSet<User> Users { get; set; }
+        // IdentityDbContext handles User, Role, Claim etc. DbSets automatically.
+        // We can add more DbSets here for other custom entities later (e.g., Orders)
         // public DbSet<Order> Orders { get; set; }
 
         // Optionally, override OnModelCreating for more complex configurations
