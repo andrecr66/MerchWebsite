@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var AllowAngularDevClient = "_allowAngularDevClient"; // Define policy name
+
 // Add services to the container.
 
 // Configure DbContext with PostgreSQL
@@ -28,6 +30,18 @@ builder.Services.AddOpenApi();
 // Add Controllers service (needed for API controllers we will add later)
 builder.Services.AddControllers();
 
+// Add CORS services
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: AllowAngularDevClient,
+                      policy =>
+                      {
+                          policy.WithOrigins("http://localhost:4200") // Allow Angular dev server origin
+                                .AllowAnyHeader()
+                                .AllowAnyMethod();
+                      });
+});
+
 
 var app = builder.Build();
 
@@ -36,6 +50,9 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+// Apply CORS middleware - IMPORTANT: Must be before MapControllers
+app.UseCors(AllowAngularDevClient);
 
 // Map controller routes
 app.MapControllers(); // Add this to map API controller routes
