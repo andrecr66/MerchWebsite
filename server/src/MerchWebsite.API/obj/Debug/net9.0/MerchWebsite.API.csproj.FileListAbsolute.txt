@@ -134,3 +134,11 @@
 /home/andre/Projects/MerchWebsite/server/src/MerchWebsite.API/obj/Debug/net9.0/MerchWebsite.API.pdb
 /home/andre/Projects/MerchWebsite/server/src/MerchWebsite.API/obj/Debug/net9.0/MerchWebsite.API.genruntimeconfig.cache
 /home/andre/Projects/MerchWebsite/server/src/MerchWebsite.API/obj/Debug/net9.0/ref/MerchWebsite.API.dll
+/home/andre/Projects/MerchWebsite/server/src/MerchWebsite.API/bin/Debug/net9.0/Microsoft.AspNetCore.Authentication.JwtBearer.dll
+/home/andre/Projects/MerchWebsite/server/src/MerchWebsite.API/bin/Debug/net9.0/Microsoft.IdentityModel.Abstractions.dll
+/home/andre/Projects/MerchWebsite/server/src/MerchWebsite.API/bin/Debug/net9.0/Microsoft.IdentityModel.JsonWebTokens.dll
+/home/andre/Projects/MerchWebsite/server/src/MerchWebsite.API/bin/Debug/net9.0/Microsoft.IdentityModel.Logging.dll
+/home/andre/Projects/MerchWebsite/server/src/MerchWebsite.API/bin/Debug/net9.0/Microsoft.IdentityModel.Protocols.dll
+/home/andre/Projects/MerchWebsite/server/src/MerchWebsite.API/bin/Debug/net9.0/Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+/home/andre/Projects/MerchWebsite/server/src/MerchWebsite.API/bin/Debug/net9.0/Microsoft.IdentityModel.Tokens.dll
+/home/andre/Projects/MerchWebsite/server/src/MerchWebsite.API/bin/Debug/net9.0/System.IdentityModel.Tokens.Jwt.dll

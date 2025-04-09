@@ -29,6 +29,13 @@ export class RegisterComponent {
             // Add password complexity validator matching backend DTO
             password: ['', [Validators.required, Validators.pattern('(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{4,8}$')]]
         });
+
+        // Clear general error when form value changes
+        this.registerForm.valueChanges.subscribe(() => {
+            this.error = null;
+            // Optionally clear success message too if desired
+            // this.successMessage = null; 
+        });
     }
 
     onSubmit(): void {

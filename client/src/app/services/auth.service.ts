@@ -1,4 +1,5 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, PLATFORM_ID } from '@angular/core'; // Import PLATFORM_ID
+import { isPlatformBrowser } from '@angular/common'; // Import isPlatformBrowser
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs'; // Import tap operator
 
@@ -14,10 +15,11 @@ interface LoginDto {
     password?: string;
 }
 
-// Interface for the expected login response (adjust if backend returns more/different info)
+// Interface for the expected login/register response (now includes token)
 interface AuthResponse {
-    message: string;
-    // token?: string; // Add later when backend returns JWT
+    username: string; // Added username
+    email: string; // Added email
+    token: string; // Added token
 }
 
 
@@ -26,41 +28,58 @@ interface AuthResponse {
 })
 export class AuthService {
     private http = inject(HttpClient);
+    private platformId = inject(PLATFORM_ID); // Inject PLATFORM_ID
     // TODO: Move to environment config
     private apiUrl = 'http://localhost:5054/api/auth'; // Use correct port
 
-    // We'll add token storage logic later
-    // private tokenKey = 'authToken';
+    private tokenKey = 'authToken'; // Key for storing token in local storage
 
     register(registerData: RegisterDto): Observable<AuthResponse> {
-        return this.http.post<AuthResponse>(`${this.apiUrl}/register`, registerData);
-        // No token handling yet
+        return this.http.post<AuthResponse>(`${this.apiUrl}/register`, registerData).pipe(
+            tap(response => {
+                // Optionally log in user immediately by storing token
+                // this.storeToken(response.token); 
+            })
+        );
     }
 
     login(loginData: LoginDto): Observable<AuthResponse> {
         return this.http.post<AuthResponse>(`${this.apiUrl}/login`, loginData).pipe(
             tap(response => {
-                // TODO: Store the token upon successful login
-                // if (response.token) {
-                //   localStorage.setItem(this.tokenKey, response.token);
-                // }
+                // Store the token upon successful login
+                this.storeToken(response.token);
             })
         );
     }
 
-    // TODO: Add logout method
-    // logout(): void {
-    //   localStorage.removeItem(this.tokenKey);
-    //   // Potentially navigate to login page
-    // }
+    // Store the token in local storage only if in browser
+    private storeToken(token: string): void {
+        if (isPlatformBrowser(this.platformId)) {
+            localStorage.setItem(this.tokenKey, token);
+        }
+    }
 
-    // TODO: Add method to check if user is logged in (e.g., by checking for token)
-    // isLoggedIn(): boolean {
-    //   return !!localStorage.getItem(this.tokenKey);
-    // }
+    // Logout method: remove token only if in browser
+    logout(): void {
+        if (isPlatformBrowser(this.platformId)) {
+            localStorage.removeItem(this.tokenKey);
+            // Potentially navigate to login page or refresh state
+        }
+    }
 
-    // TODO: Add method to get the stored token
-    // getToken(): string | null {
-    //   return localStorage.getItem(this.tokenKey);
-    // }
+    // Check if user is logged in (only possible in browser)
+    isLoggedIn(): boolean {
+        if (isPlatformBrowser(this.platformId)) {
+            return !!localStorage.getItem(this.tokenKey);
+        }
+        return false; // Cannot be logged in on server
+    }
+
+    // Get the stored token (only possible in browser)
+    getToken(): string | null {
+        if (isPlatformBrowser(this.platformId)) {
+            return localStorage.getItem(this.tokenKey);
+        }
+        return null; // No token on server
+    }
 }

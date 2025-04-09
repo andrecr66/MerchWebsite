@@ -1,5 +1,8 @@
 using MerchWebsite.API.Entities;
 using MerchWebsite.API.Models.DTOs;
+using MerchWebsite.API.Entities;
+using MerchWebsite.API.Models.DTOs;
+using MerchWebsite.API.Services; // Add this
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,12 +14,13 @@ namespace MerchWebsite.API.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
-        // We'll add a token service later for JWT generation
+        private readonly ITokenService _tokenService; // Inject Token Service
 
-        public AuthController(UserManager<User> userManager, SignInManager<User> signInManager)
+        public AuthController(UserManager<User> userManager, SignInManager<User> signInManager, ITokenService tokenService) // Add ITokenService
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _tokenService = tokenService; // Assign injected service
         }
 
         // POST: api/auth/login
@@ -31,8 +35,13 @@ namespace MerchWebsite.API.Controllers
 
             if (!result.Succeeded) return Unauthorized("Invalid username or password"); // Password incorrect
 
-            // TODO: Generate and return a JWT token instead of just OK
-            return Ok(new { Message = "Login successful" });
+            // Generate and return token in UserDto
+            return Ok(new UserDto
+            {
+                Username = user.UserName ?? "Unknown",
+                Email = user.Email ?? "Unknown",
+                Token = _tokenService.CreateToken(user)
+            });
         }
 
         // POST: api/auth/register
@@ -76,8 +85,13 @@ namespace MerchWebsite.API.Controllers
             // TODO: Add user to a default role if needed
             // await _userManager.AddToRoleAsync(user, "Member");
 
-            // TODO: Generate and return a JWT token or user info instead of just OK
-            return Ok(new { Message = "Registration successful" });
+            // Generate and return token in UserDto
+            return Ok(new UserDto
+            {
+                Username = user.UserName ?? "Unknown",
+                Email = user.Email ?? "Unknown",
+                Token = _tokenService.CreateToken(user)
+            });
         }
     }
 }
