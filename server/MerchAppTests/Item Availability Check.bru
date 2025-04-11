@@ -1,0 +1,11 @@
+meta {
+  name: Item Availability Check
+  type: http
+  seq: 9
+}
+
+post {
+  url: http://localhost:5054/api/cart/items
+  body: none
+  auth: inherit
+}
