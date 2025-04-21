@@ -1,85 +1,86 @@
-import { Injectable, inject, PLATFORM_ID } from '@angular/core'; // Import PLATFORM_ID
-import { isPlatformBrowser } from '@angular/common'; // Import isPlatformBrowser
-import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs'; // Import tap operator
+// client/src/app/services/auth.service.ts
+import { Injectable, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http'; // Import HttpErrorResponse
+import { Observable, tap, throwError, catchError } from 'rxjs'; // Import throwError, catchError
+// --- FIX: Correct the environment import path ---
+import { environment } from '../../environments/environment';
+// --- End Path Correction ---
+import { CartService } from './cart.service';
+import { Cart } from '../models/cart/cart.model'; // Import Cart if needed
 
-// Define interfaces for the DTOs (matching backend)
-interface RegisterDto {
-    email: string;
-    username: string;
-    password?: string; // Password might be optional depending on flow
-}
-
-interface LoginDto {
-    username: string;
-    password?: string;
-}
-
-// Interface for the expected login/register response (now includes token)
-interface AuthResponse {
-    username: string; // Added username
-    email: string; // Added email
-    token: string; // Added token
-}
-
+// Keep your DTO interfaces
+interface RegisterDto { email: string; username: string; password?: string; }
+interface LoginDto { username: string; password?: string; }
+interface AuthResponse { username: string; email: string; token: string; } // Ensure token is here
 
 @Injectable({
     providedIn: 'root'
 })
 export class AuthService {
     private http = inject(HttpClient);
-    private platformId = inject(PLATFORM_ID); // Inject PLATFORM_ID
-    // TODO: Move to environment config
-    private apiUrl = 'http://localhost:5054/api/auth'; // Use correct port
+    private platformId = inject(PLATFORM_ID);
+    private cartService = inject(CartService);
 
-    private tokenKey = 'authToken'; // Key for storing token in local storage
+    private apiUrl = `${environment.apiUrl}/auth`; // Use environment variable
+    private tokenKey = 'authToken';
 
     register(registerData: RegisterDto): Observable<AuthResponse> {
         return this.http.post<AuthResponse>(`${this.apiUrl}/register`, registerData).pipe(
             tap(response => {
-                // Optionally log in user immediately by storing token
-                // this.storeToken(response.token); 
-            })
+                console.log('Registration successful:', response);
+            }),
+            catchError(this.handleError) // <<< Add catchError
         );
     }
 
     login(loginData: LoginDto): Observable<AuthResponse> {
         return this.http.post<AuthResponse>(`${this.apiUrl}/login`, loginData).pipe(
-            tap(response => {
-                // Store the token upon successful login
-                this.storeToken(response.token);
-            })
+            tap((response: AuthResponse) => { // <<< Add explicit type here
+                this.storeToken(response.token); // Now token property should be found
+                console.log('Login successful, token stored.');
+                if (isPlatformBrowser(this.platformId)) {
+                    // Assuming loadCart exists on CartService
+                    this.cartService.loadCart().subscribe({
+                        next: (cart: Cart) => console.log('AuthService: Cart loaded successfully after login.'), // Type added
+                        error: (err: any) => console.error('AuthService: Failed to load cart after login:', err) // Type added
+                    });
+                }
+            }),
+            catchError(this.handleError) // <<< Add catchError
         );
     }
 
-    // Store the token in local storage only if in browser
-    private storeToken(token: string): void {
-        if (isPlatformBrowser(this.platformId)) {
-            localStorage.setItem(this.tokenKey, token);
-        }
-    }
+    private storeToken(token: string): void { /* ... */ }
 
-    // Logout method: remove token only if in browser
     logout(): void {
         if (isPlatformBrowser(this.platformId)) {
+            const token = this.getToken();
             localStorage.removeItem(this.tokenKey);
-            // Potentially navigate to login page or refresh state
+            console.log('AuthService: Token removed.');
+            if (token) {
+                // Assuming clearLocalCart exists on CartService
+                this.cartService.clearLocalCart();
+                console.log('AuthService: Local cart cleared on logout.');
+            }
         }
     }
 
-    // Check if user is logged in (only possible in browser)
+    // --- FIX: Ensure methods have return paths (Your code looked OK, maybe side effect of other errors) ---
     isLoggedIn(): boolean {
-        if (isPlatformBrowser(this.platformId)) {
-            return !!localStorage.getItem(this.tokenKey);
-        }
-        return false; // Cannot be logged in on server
+        return isPlatformBrowser(this.platformId) && !!localStorage.getItem(this.tokenKey);
     }
 
-    // Get the stored token (only possible in browser)
     getToken(): string | null {
-        if (isPlatformBrowser(this.platformId)) {
-            return localStorage.getItem(this.tokenKey);
-        }
-        return null; // No token on server
+        return isPlatformBrowser(this.platformId) ? localStorage.getItem(this.tokenKey) : null;
     }
+    // --- End Fix ---
+
+    // --- ADD Basic HandleError if missing ---
+    private handleError(error: HttpErrorResponse): Observable<never> {
+        console.error('AuthService encountered an error:', error);
+        const message = error.error?.title || error.error?.message || error.message || 'Authentication operation failed';
+        return throwError(() => new Error(message));
+    }
+    // --- End HandleError ---
 }

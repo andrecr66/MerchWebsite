@@ -1,4 +1,34 @@
-<h1>My Merch Store</h1>
+<!-- client/src/app/app.component.html -->
+<header>
+    <nav>
+        <a routerLink="/">
+            <h1>My Merch Site</h1>
+        </a>
+        <ul>
+            <li><a routerLink="/products">Products</a></li>
+            <!-- Show Cart link -->
+            <li>
+                <!-- Use async pipe to get the count value -->
+                <a routerLink="/cart">Cart ({{ cartItemCount$ | async }})</a>
+            </li>
+            <!-- Conditional Login/Register or Logout links -->
+            <ng-container *ngIf="!authService.isLoggedIn()"> <!-- Call the method -->
+                <li><a routerLink="/login">Login</a></li>
+                <li><a routerLink="/register">Register</a></li>
+            </ng-container>
+            <ng-container *ngIf="authService.isLoggedIn()"> <!-- Call the method -->
+                <li><button (click)="logout()">Logout</button></li>
+                <!-- Add username display later if needed -->
+            </ng-container>
+        </ul>
+    </nav>
+</header>
 
-<!-- This is where the routed components (like ProductListComponent) will be displayed -->
-<router-outlet></router-outlet>
+<main>
+    <!-- Where routed components will be displayed -->
+    <router-outlet></router-outlet>
+</main>
+
+<footer>
+    <p>© 2025 MerchWebsite</p>
+</footer>

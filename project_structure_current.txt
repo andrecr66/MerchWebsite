@@ -1,0 +1,133 @@
+.
+├── client
+│   ├── angular.json
+│   ├── .editorconfig
+│   ├── .gitignore
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── public
+│   │   └── favicon.ico
+│   ├── README.md
+│   ├── src
+│   │   ├── app
+│   │   │   ├── app.component.css
+│   │   │   ├── app.component.html
+│   │   │   ├── app.component.spec.ts
+│   │   │   ├── app.component.ts
+│   │   │   ├── app.config.server.ts
+│   │   │   ├── app.config.ts
+│   │   │   ├── app.routes.server.ts
+│   │   │   ├── app.routes.ts
+│   │   │   ├── components
+│   │   │   │   ├── cart
+│   │   │   │   │   ├── cart.component.css
+│   │   │   │   │   ├── cart.component.html
+│   │   │   │   │   └── cart.component.ts
+│   │   │   │   ├── login
+│   │   │   │   │   ├── login.component.css
+│   │   │   │   │   ├── login.component.html
+│   │   │   │   │   ├── login.component.spec.ts
+│   │   │   │   │   └── login.component.ts
+│   │   │   │   ├── product-list
+│   │   │   │   │   ├── product-list.component.css
+│   │   │   │   │   ├── product-list.component.html
+│   │   │   │   │   ├── product-list.component.spec.ts
+│   │   │   │   │   └── product-list.component.ts
+│   │   │   │   └── register
+│   │   │   │       ├── register.component.css
+│   │   │   │       ├── register.component.html
+│   │   │   │       ├── register.component.spec.ts
+│   │   │   │       └── register.component.ts
+│   │   │   ├── interceptors
+│   │   │   │   └── auth.interceptor.ts
+│   │   │   ├── models
+│   │   │   │   ├── cart
+│   │   │   │   │   ├── add-cart-item.dto.ts
+│   │   │   │   │   ├── cart-item.model.ts
+│   │   │   │   │   └── cart.model.ts
+│   │   │   │   └── product.model.ts
+│   │   │   └── services
+│   │   │       ├── auth.service.ts
+│   │   │       ├── cart.service.ts
+│   │   │       └── product.service.ts
+│   │   ├── environments
+│   │   │   ├── environment.prod.ts
+│   │   │   └── environment.ts
+│   │   ├── index.html
+│   │   ├── main.server.ts
+│   │   ├── main.ts
+│   │   ├── server.ts
+│   │   └── styles.css
+│   ├── tsconfig.app.json
+│   ├── tsconfig.json
+│   ├── tsconfig.spec.json
+│   └── .vscode
+│       ├── extensions.json
+│       ├── launch.json
+│       └── tasks.json
+├── .gitignore
+├── project_structure_current.txt
+└── server
+    ├── MerchAppTests
+    │   ├── Auth Token Retrival.bru
+    │   ├── bruno.json
+    │   ├── Delete Method test.bru
+    │   ├── Item Availability Check.bru
+    │   ├── PingEndpoint_Test.bru
+    │   ├── Place Order Logic Endpoints Test.bru
+    │   ├── ProductById.bru
+    │   ├── Product Existance Confirmation.bru
+    │   ├── Test.bru
+    │   └── Utilizing Auth Token.bru
+    ├── MerchWebsite.sln
+    └── src
+        └── MerchWebsite.API
+            ├── appsettings.Development.json
+            ├── appsettings.json
+            ├── Controllers
+            │   ├── AuthController.cs
+            │   ├── CartController.cs
+            │   ├── OrdersController.cs
+            │   └── ProductsController.cs
+            ├── Data
+            │   ├── AppDbContext.cs
+            │   └── AppDbContextFactory.cs
+            ├── Entities
+            │   ├── Cart.cs
+            │   ├── CartItem.cs
+            │   ├── Order.cs
+            │   ├── OrderItem.cs
+            │   ├── Product.cs
+            │   └── User.cs
+            ├── MerchWebsite.API.csproj
+            ├── MerchWebsite.API.http
+            ├── Migrations
+            │   ├── 20250404200438_InitialCreate.cs
+            │   ├── 20250404200438_InitialCreate.Designer.cs
+            │   ├── 20250405001601_AddIdentityTables.cs
+            │   ├── 20250405001601_AddIdentityTables.Designer.cs
+            │   ├── 20250409192141_AddCartEntities.cs
+            │   ├── 20250409192141_AddCartEntities.Designer.cs
+            │   ├── 20250411213014_AddOrderEntities.cs
+            │   ├── 20250411213014_AddOrderEntities.Designer.cs
+            │   └── AppDbContextModelSnapshot.cs
+            ├── Models
+            │   └── DTOs
+            │       ├── AddCartItemDto.cs
+            │       ├── CartDto.cs
+            │       ├── CartItemDto.cs
+            │       ├── CreateOrderDto.cs
+            │       ├── LoginDto.cs
+            │       ├── OrderDto.cs
+            │       ├── OrderItemDto.cs
+            │       ├── RegisterDto.cs
+            │       ├── UpdateCartItemQuantityDto.cs
+            │       └── UserDto.cs
+            ├── Program.cs
+            ├── Properties
+            │   └── launchSettings.json
+            └── Services
+                ├── ITokenService.cs
+                └── TokenService.cs
+
+28 directories, 103 files

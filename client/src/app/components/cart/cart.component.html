@@ -1,0 +1,58 @@
+<!-- client/src/app/components/cart/cart.component.html -->
+<h2>Your Shopping Cart</h2>
+
+<!-- Use async pipe to subscribe to cart$ -->
+<ng-container *ngIf="cart$ | async as cart; else loadingOrEmpty">
+    <div *ngIf="cart.items && cart.items.length > 0; else emptyCartContent"> <!-- Nested check for items array -->
+        <table>
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Image</th> <!-- Added Image Header -->
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Total</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let item of cart.items">
+                    <td>{{ item.productName }}</td>
+                    <!-- Added Image Column -->
+                    <td><img [src]="item.productImageUrl || 'placeholder.jpg'" alt="{{ item.productName }}" width="50">
+                    </td>
+                    <td>{{ item.price | currency }}</td>
+                    <td>
+                        <!-- FIX: Bind change to the new handler method -->
+                        <input type="number" min="0" [value]="item.quantity"
+                            (change)="onQuantityChange($event, item.id)" style="width: 50px;">
+                        <!-- End Fix -->
+                    </td>
+                    <td>{{ (item.price * item.quantity) | currency }}</td>
+                    <td>
+                        <button (click)="removeItem(item.id)">Remove</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="cart-summary">
+            <h3>Total: {{ cart.grandTotal | currency }}</h3> <!-- Use grandTotal -->
+            <button routerLink="/checkout">Proceed to Checkout</button>
+        </div>
+    </div>
+
+    <!-- Define empty cart content within the main check -->
+    <ng-template #emptyCartContent>
+        <p>Your cart is empty.</p>
+        <a routerLink="/products">Continue Shopping</a>
+    </ng-template>
+
+</ng-container>
+
+<!-- Combined loading/empty check before cart is available -->
+<ng-template #loadingOrEmpty>
+    <!-- Can distinguish loading vs truly empty if needed -->
+    <p>Loading cart or cart is empty...</p>
+    <a routerLink="/products">Continue Shopping</a>
+</ng-template>
