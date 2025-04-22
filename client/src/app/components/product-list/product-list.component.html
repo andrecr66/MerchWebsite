@@ -1,3 +1,4 @@
+<!-- client/src/app/components/product-list/product-list.component.html -->
 <h2>Products</h2>
 
 <!-- Loading Indicator -->
@@ -14,17 +15,19 @@
 <div *ngIf="!isLoading && !error">
     <div *ngIf="products.length > 0; else noProducts">
         <ul>
-            <!-- Loop through products -->
             <li *ngFor="let product of products">
                 <h3>{{ product.name }}</h3>
+                <!-- Add Image later if needed -->
+                <!-- <img [src]="product.imageUrl || 'placeholder.jpg'" alt="{{ product.name }}" width="100"> -->
                 <p>{{ product.description }}</p>
                 <p>Price: {{ product.price | currency }}</p>
-                <!-- We'll add images and links later -->
+                <!-- Add to Cart Button -->
+                <button (click)="addToCart(product)">Add to Cart</button> <!-- <<<--- Added Button -->
+                <!-- End Add to Cart Button -->
             </li>
         </ul>
     </div>
 
-    <!-- Template to show if no products are found -->
     <ng-template #noProducts>
         <p>No products found.</p>
     </ng-template>

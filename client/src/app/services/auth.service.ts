@@ -51,7 +51,36 @@ export class AuthService {
         );
     }
 
-    private storeToken(token: string): void { /* ... */ }
+    private storeToken(token: string): void {
+        // --- Log entry and check token validity ---
+        console.log('[AuthService storeToken] Attempting to store token. Value:', token);
+        if (typeof token !== 'string' || token.length === 0) {
+            console.error('[AuthService storeToken] Received invalid token value. Not storing.');
+            return; // Exit if token is invalid
+        }
+        // --- End log/check ---
+
+        // Check if running in a browser environment
+        if (isPlatformBrowser(this.platformId)) {
+            try {
+                // --- Actual storage logic ---
+                localStorage.setItem(this.tokenKey, token);
+                // --- End storage logic ---
+
+                // --- Log success ---
+                console.log('[AuthService storeToken] Token stored successfully in localStorage.');
+                // --- End log ---
+            } catch (e) {
+                // --- Log storage error ---
+                console.error('[AuthService storeToken] Error storing token in localStorage:', e);
+                // --- End log ---
+            }
+        } else {
+            // --- Log skip ---
+            console.log('[AuthService storeToken] Not in browser, skipping localStorage.');
+            // --- End log ---
+        }
+    }
 
     logout(): void {
         if (isPlatformBrowser(this.platformId)) {

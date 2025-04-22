@@ -1,26 +1,28 @@
-import { Component, OnInit, inject } from '@angular/core'; // Import OnInit
-import { CommonModule } from '@angular/common'; // Import CommonModule
-import { ProductService } from '../../services/product.service'; // Import ProductService
-import { Product } from '../../models/product.model'; // Import Product model
+// client/src/app/components/product-list/product-list.component.ts
+import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ProductService } from '../../services/product.service';
+import { Product } from '../../models/product.model';
+import { CartService } from '../../services/cart.service'; // <<<--- Import CartService
+import { AddCartItemDto } from '../../models/cart/add-cart-item.dto'; // <<<--- Import DTO
 
 @Component({
   selector: 'app-product-list',
-  standalone: true, // Indicates this is a standalone component
-  imports: [CommonModule], // Import CommonModule here for standalone components
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './product-list.component.html',
-  styleUrl: './product-list.component.css'
+  styleUrls: ['./product-list.component.css'] // <<<--- Use plural styleUrls
 })
-export class ProductListComponent implements OnInit { // Implement OnInit
+export class ProductListComponent implements OnInit {
 
-  products: Product[] = []; // Property to hold the product list
-  isLoading = true; // Flag for loading state
-  error: string | null = null; // Property to hold potential errors
+  products: Product[] = [];
+  isLoading = true;
+  error: string | null = null;
 
-  // Inject ProductService using the inject function (modern way)
   private productService = inject(ProductService);
+  private cartService = inject(CartService); // <<<--- Inject CartService
 
   ngOnInit(): void {
-    // Fetch products when the component initializes
     this.productService.getProducts().subscribe({
       next: (data) => {
         this.products = data;
@@ -33,4 +35,28 @@ export class ProductListComponent implements OnInit { // Implement OnInit
       }
     });
   }
+
+  // --- Method to add item to cart ---
+  addToCart(product: Product): void {
+    console.log(`Adding product ${product.id} (${product.name}) to cart`);
+    // Default quantity to 1 for now when adding from list
+    const itemToAdd: AddCartItemDto = {
+      productId: product.id,
+      quantity: 1
+    };
+
+    this.cartService.addItem(itemToAdd).subscribe({
+      // Optional: Add user feedback on success/error
+      next: (updatedCart) => {
+        console.log('Product added successfully, new cart:', updatedCart);
+        // Maybe show a temporary confirmation message
+      },
+      error: (err) => {
+        console.error(`Error adding product ${product.id} to cart:`, err);
+        // Show user-friendly error message
+        alert(`Failed to add ${product.name} to cart. ${err.message || ''}`);
+      }
+    });
+  }
+  // --- End add to cart method ---
 }
