@@ -63,12 +63,16 @@ export class CartComponent implements OnInit {
         }
     }
 
+    // In client/src/app/components/cart/cart.component.ts
+
     removeItem(itemId: number): void {
         console.log(`CartComponent: Removing item ${itemId}`);
-        // --- UNCOMMENT THE SERVICE CALL ---
-        this.cartService.removeItem(itemId).subscribe({
-            next: () => console.log(`Item ${itemId} removed successfully from backend`),
-            error: (err) => console.error(`Error removing item ${itemId}:`, err)
+        // --- UNCOMMENT the following block ---
+        this.cartService.removeItem(itemId).subscribe({ // Call the service method
+            next: () => console.log(`CartComponent: Item ${itemId} removal initiated`),
+            // Note: No need to manually update the component's cart$ here,
+            // the service's tap operator handles updating the subject.
+            error: (err) => console.error(`CartComponent: Error removing item ${itemId}:`, err)
         });
         // --- End Uncomment ---
     }
