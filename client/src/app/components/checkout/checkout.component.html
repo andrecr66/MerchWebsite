@@ -1,0 +1,156 @@
+<!-- client/src/app/components/checkout/checkout.component.html -->
+<h2>Checkout</h2>
+
+<ng-container *ngIf="cart$ | async as cart; else loadingCart">
+    <!-- Ensure cart and items exist before showing summary/form -->
+    <div *ngIf="cart && cart.items && cart.items.length > 0; else emptyCartMsg">
+
+        <h3>Order Summary</h3>
+        <ul>
+            <!-- Corrected line with HTML entity for @ -->
+            <li *ngFor="let item of cart.items">
+                {{ item.quantity }} x {{ item.productName }} &#64; {{ item.price | currency }} each = {{ (item.price *
+                item.quantity) | currency }}
+            </li>
+        </ul>
+        <!-- Use grandTotal from cart object -->
+        <h4>Total: {{ cart.grandTotal | currency }}</h4>
+        <hr>
+
+        <h3>Shipping Address</h3>
+        <!-- Form Section -->
+        <form [formGroup]="checkoutForm" (ngSubmit)="placeOrder()">
+
+            <!-- Full Name -->
+            <div>
+                <label for="fullName">Full Name:</label>
+                <input id="fullName" type="text" formControlName="fullName">
+                <div *ngIf="fullName?.invalid && (fullName?.dirty || fullName?.touched)" class="error">
+                    Full name is required.
+                </div>
+            </div>
+
+            <!-- Address Line 1 -->
+            <div>
+                <label for="addressLine1">Address Line 1:</label>
+                <input id="addressLine1" type="text" formControlName="addressLine1">
+                <div *ngIf="addressLine1?.invalid && (addressLine1?.dirty || addressLine1?.touched)" class="error">
+                    Address Line 1 is required.
+                </div>
+            </div>
+
+            <!-- Address Line 2 -->
+            <div>
+                <label for="addressLine2">Address Line 2 (Optional):</label>
+                <input id="addressLine2" type="text" formControlName="addressLine2">
+            </div>
+
+            <!-- City -->
+            <div>
+                <label for="city">City:</label>
+                <input id="city" type="text" formControlName="city">
+                <div *ngIf="city?.invalid && (city?.dirty || city?.touched)" class="error">
+                    City is required.
+                </div>
+            </div>
+
+            <!-- Postal Code -->
+            <div>
+                <label for="postalCode">Postal Code:</label>
+                <input id="postalCode" type="text" formControlName="postalCode">
+                <div *ngIf="postalCode?.invalid && (postalCode?.dirty || postalCode?.touched)" class="error">
+                    <span *ngIf="postalCode?.errors?.['required']">Postal code is required.</span>
+                    <span *ngIf="postalCode?.errors?.['pattern']">Invalid postal code format.</span>
+                </div>
+            </div>
+
+            <!-- Country -->
+            <div>
+                <label for="country">Country:</label>
+                <input id="country" type="text" formControlName="country">
+                <!-- Corrected validation div -->
+                <div *ngIf="country?.invalid && (country?.dirty || country?.touched)" class="error">
+                    Country is required.
+                </div>
+            </div>
+
+            <hr>
+
+            <!-- General Error Message Area -->
+            <div *ngIf="errorMessage" class="error">
+                {{ errorMessage }}
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" [disabled]="checkoutForm.invalid || isSubmitting">
+                {{ isSubmitting ? 'Placing Order...' : 'Place Order Now' }}
+            </button>
+
+        </form> <!-- End of Form -->
+
+    </div> <!-- End of main content div -->
+</ng-container>
+
+<!-- Template shown while loading cart -->
+<ng-template #loadingCart>
+    <p>Loading cart summary...</p>
+</ng-template>
+
+<!-- Template shown if cart is empty -->
+<ng-template #emptyCartMsg>
+    <p>Your cart is empty. Cannot proceed to checkout.</p>
+    <a routerLink="/products">Go back to products</a>
+</ng-template>
+
+<!-- Basic styles (can move to CSS file later) -->
+<style>
+    .error {
+        color: red;
+        font-size: 0.8em;
+        margin-top: 0.2em;
+    }
+
+    label {
+        display: block;
+        margin-top: 0.7em;
+        font-weight: bold;
+    }
+
+    input {
+        width: 90%;
+        max-width: 350px;
+        padding: 0.4em;
+        margin-top: 0.2em;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    input.ng-invalid.ng-touched {
+        border-color: red;
+    }
+
+    /* Style invalid inputs */
+    button {
+        margin-top: 1em;
+        padding: 0.7em 1.2em;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background-color: #0056b3;
+    }
+
+    button[disabled] {
+        cursor: not-allowed;
+        opacity: 0.6;
+        background-color: #cccccc;
+    }
+
+    hr {
+        margin: 1em 0;
+    }
+</style>

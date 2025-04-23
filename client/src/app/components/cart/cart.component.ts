@@ -24,13 +24,8 @@ export class CartComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        // No need to re-assign here if done in constructor
-        // Trigger loading cart data (AuthService might already do this)
-        // Consider if this load is necessary or might cause race conditions with AuthService load
-        // For now, we keep it to ensure data is loaded if navigated directly
-        this.cartService.loadCart().subscribe({
-            error: (err) => console.error('Error loading cart in CartComponent ngOnInit:', err)
-        });
+        // Cart is initialized in constructor and updated via AuthService/CartService interactions
+        console.log('CartComponent initialized, subscribing to cart$');
     }
 
     // --- New method to handle the change event ---
