@@ -1,18 +1,40 @@
 <!-- client/src/app/components/product-list/product-list.component.html -->
 <h2>Products</h2>
 
-<!-- ... Loading/Error divs ... -->
+<!-- Category Filter Section -->
+<div class="category-filters" *ngIf="!isLoadingCategories && categories.length > 0">
+    <span>Filter by: </span>
+    <button *ngFor="let category of categories" (click)="filterByCategory(category)"
+        [class.active]="category === selectedCategory">
+        {{ category }}
+    </button>
+</div>
+<div *ngIf="isLoadingCategories">
+    <p>Loading categories...</p>
+</div>
+<!-- End Category Filter Section -->
 
+<hr> <!-- Separator -->
+
+<!-- Loading Indicator for Products -->
+<div *ngIf="isLoading">
+    <p>Loading products...</p>
+</div>
+
+<!-- Error Message for Products -->
+<div *ngIf="error">
+    <p style="color: red;">{{ error }}</p>
+</div>
+
+<!-- Product List -->
 <div *ngIf="!isLoading && !error">
     <div *ngIf="products.length > 0; else noProducts">
         <ul>
             <li *ngFor="let product of products">
-                <!-- Make Name a Link -->
                 <h3>
                     <a [routerLink]="['/products', product.id]">{{ product.name }}</a>
                 </h3>
-                <!-- End Link -->
-                <!-- Add Image link later if needed -->
+                <p>Category: {{product.category}}</p> <!-- Display category -->
                 <p>{{ product.description }}</p>
                 <p>Price: {{ product.price | currency }}</p>
                 <button (click)="addToCart(product)">Add to Cart</button>
@@ -20,6 +42,38 @@
         </ul>
     </div>
     <ng-template #noProducts>
-        <p>No products found.</p>
+        <!-- Message when no products match filter -->
+        <p>No products found{{ selectedCategory !== 'All' ? ' in category: ' + selectedCategory : '' }}.</p>
     </ng-template>
 </div>
+
+<!-- Basic styles (can move to CSS) -->
+<style>
+    .category-filters button {
+        margin: 0 0.3em;
+        padding: 0.4em 0.8em;
+        cursor: pointer;
+        border: 1px solid #ccc;
+        background-color: #f0f0f0;
+        border-radius: 4px;
+    }
+
+    .category-filters button.active {
+        background-color: #007bff;
+        color: white;
+        border-color: #007bff;
+        font-weight: bold;
+    }
+
+    .category-filters button:hover {
+        background-color: #e0e0e0;
+    }
+
+    .category-filters button.active:hover {
+        background-color: #0056b3;
+    }
+
+    hr {
+        margin: 1em 0;
+    }
+</style>

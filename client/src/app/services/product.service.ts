@@ -1,48 +1,63 @@
 // client/src/app/services/product.service.ts
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http'; // Import HttpErrorResponse
-import { Observable, catchError, throwError } from 'rxjs'; // Import catchError, throwError
+// --- Import HttpParams ---
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+// --- End Import ---
+import { Observable, catchError, throwError, of } from 'rxjs'; // Import 'of' for getCategories
 import { Product } from '../models/product.model';
-import { environment } from '../../environments/environment'; // Ensure correct path
+import { environment } from '../../environments/environment';
 
 @Injectable({
     providedIn: 'root'
 })
 export class ProductService {
     private http = inject(HttpClient);
-    private apiUrl = `${environment.apiUrl}/products`; // Base URL for products API
+    private apiUrl = `${environment.apiUrl}/products`;
 
-    // Existing method to get all products
-    getProducts(): Observable<Product[]> {
-        return this.http.get<Product[]>(this.apiUrl).pipe(
-            catchError(this.handleError) // Add error handling
+    // --- Modify getProducts ---
+    getProducts(category?: string): Observable<Product[]> {
+        let params = new HttpParams();
+        if (category && category !== 'All') { // Check if category is provided and not 'All'
+            params = params.append('category', category);
+            console.log(`ProductService: Fetching products for category: ${category}`);
+        } else {
+            console.log(`ProductService: Fetching all products`);
+        }
+        // Pass params object to the get request
+        return this.http.get<Product[]>(this.apiUrl, { params }).pipe(
+            catchError(this.handleError)
         );
     }
+    // --- End Modify getProducts ---
 
-    // --- ADD METHOD to get single product by ID ---
     getProductById(id: number): Observable<Product> {
-        const url = `${this.apiUrl}/${id}`; // Construct URL like /api/products/5
+        const url = `${this.apiUrl}/${id}`;
         console.log(`ProductService: Fetching product with ID ${id} from ${url}`);
         return this.http.get<Product>(url).pipe(
             catchError(this.handleError)
         );
     }
-    // --- END ADD METHOD ---
 
-    // --- ADD Basic Error Handler ---
+    // --- ADD getCategories ---
+    // For now, return a hardcoded list. Replace with API call later.
+    getCategories(): Observable<string[]> {
+        console.log('ProductService: Returning hardcoded categories');
+        const hardcodedCategories = ['All', 'T-Shirts', 'Hoodies', 'Accessories']; // Match seeding
+        return of(hardcodedCategories); // 'of' creates an Observable from the array
+        /* // Later, replace with API call:
+        return this.http.get<string[]>(`${environment.apiUrl}/categories`).pipe( // Assuming /api/categories endpoint
+           catchError(this.handleError)
+        );
+        */
+    }
+    // --- END ADD getCategories ---
+
+
     private handleError(error: HttpErrorResponse): Observable<never> {
+        // ... (keep existing error handler) ...
         let errorMessage = 'An unknown error occurred fetching product data!';
-        if (error.error instanceof ErrorEvent) {
-            errorMessage = `Network Error: ${error.message}`;
-        } else {
-            // Backend returned an unsuccessful response code.
-            errorMessage = `Server returned code ${error.status}, error message is: ${error.message}`;
-            if (error.status === 404) {
-                errorMessage = `Product not found.`; // Specific message for 404
-            }
-        }
+        if (error.error instanceof ErrorEvent) { /* ... */ } else { /* ... */ }
         console.error('ProductService Error:', error);
         return throwError(() => new Error(errorMessage));
     }
-    // --- END Error Handler ---
 }

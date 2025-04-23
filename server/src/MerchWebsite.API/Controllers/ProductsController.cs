@@ -1,46 +1,63 @@
-using MerchWebsite.API.Data; // Access DbContext
-using MerchWebsite.API.Entities; // Access Product entity
-using Microsoft.AspNetCore.Mvc; // Use MVC attributes and types
-using Microsoft.EntityFrameworkCore; // Use EF Core async methods
+// server/src/MerchWebsite.API/Controllers/ProductsController.cs
+using MerchWebsite.API.Data;
+using MerchWebsite.API.Entities;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Linq; // <<< Add using for LINQ methods like Where
 
 namespace MerchWebsite.API.Controllers
 {
-    [ApiController] // Indicates this is an API controller
-    [Route("api/[controller]")] // Sets the base route: api/products
-    public class ProductsController : ControllerBase // Base class for API controllers
+    [ApiController]
+    [Route("api/[controller]")]
+    public class ProductsController : ControllerBase
     {
         private readonly AppDbContext _context;
 
-        // Constructor injection: ASP.NET Core provides the AppDbContext instance
         public ProductsController(AppDbContext context)
         {
             _context = context;
         }
 
-        // GET: api/products
+        // --- MODIFY GetProducts Method ---
+        // GET: api/products?category=SomeCategory
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
+        // Add category query parameter (optional)
+        public async Task<ActionResult<IEnumerable<Product>>> GetProducts([FromQuery] string? category) // <<< Add parameter
         {
-            // Asynchronously retrieve all products from the database
-            var products = await _context.Products.ToListAsync();
-            return Ok(products); // Return 200 OK with the list of products
-        }
+            // Start with the base query for all products
+            var query = _context.Products.AsQueryable(); // Start as IQueryable
 
-        // GET: api/products/5
-        [HttpGet("{id}")] // Route parameter for the product ID
-        public async Task<ActionResult<Product>> GetProduct(int id)
-        {
-            // Asynchronously find a product by its ID
-            var product = await _context.Products.FindAsync(id);
-
-            if (product == null)
+            // Check if a category filter was provided in the query string
+            if (!string.IsNullOrEmpty(category))
             {
-                return NotFound(); // Return 404 Not Found if product doesn't exist
+                Console.WriteLine($"API: Filtering products by category: {category}"); // Add log
+                // Apply a WHERE clause to filter by the category
+                // Use case-insensitive comparison for robustness
+                query = query.Where(p => EF.Functions.ILike(p.Category, category));
+                // Alternatively, for exact match (case-sensitive depending on DB collation):
+                // query = query.Where(p => p.Category == category);
+            }
+            else
+            {
+                Console.WriteLine($"API: Getting all products (no category filter)."); // Add log
             }
 
-            return Ok(product); // Return 200 OK with the found product
-        }
+            // Execute the query (which may or may not have the Where clause)
+            var products = await query.ToListAsync();
 
-        // We will add POST, PUT, DELETE endpoints later
+            return Ok(products);
+        }
+        // --- END MODIFY GetProducts ---
+
+
+        // GET: api/products/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Product>> GetProduct(int id)
+        {
+            // ... (existing GetProduct code remains the same) ...
+            var product = await _context.Products.FindAsync(id);
+            if (product == null) return NotFound();
+            return Ok(product);
+        }
     }
 }

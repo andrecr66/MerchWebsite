@@ -142,3 +142,6 @@
 /home/andre/Projects/MerchWebsite/server/src/MerchWebsite.API/obj/Debug/net9.0/MerchWebsite.API.pdb
 /home/andre/Projects/MerchWebsite/server/src/MerchWebsite.API/obj/Debug/net9.0/MerchWebsite.API.genruntimeconfig.cache
 /home/andre/Projects/MerchWebsite/server/src/MerchWebsite.API/obj/Debug/net9.0/ref/MerchWebsite.API.dll
+/home/andre/Projects/MerchWebsite/server/src/MerchWebsite.API/bin/Debug/net9.0/Swashbuckle.AspNetCore.Swagger.dll
+/home/andre/Projects/MerchWebsite/server/src/MerchWebsite.API/bin/Debug/net9.0/Swashbuckle.AspNetCore.SwaggerGen.dll
+/home/andre/Projects/MerchWebsite/server/src/MerchWebsite.API/bin/Debug/net9.0/Swashbuckle.AspNetCore.SwaggerUI.dll

@@ -1,69 +1,156 @@
 using MerchWebsite.API.Data;
-using MerchWebsite.API.Data;
-using MerchWebsite.API.Entities; // Add this for User entity
-using Microsoft.AspNetCore.Authentication.JwtBearer; // Add this for JWT Bearer
-using Microsoft.AspNetCore.Identity; // Add this for Identity services
+// --- Remove Duplicate Using ---
+// using MerchWebsite.API.Data;
+// --- End Remove ---
+using MerchWebsite.API.Entities;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens; // Add this for Token Validation
-using System.Text; // Add this for Encoding
-using MerchWebsite.API.Services; // Add this for TokenService
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using MerchWebsite.API.Services;
 
+// --- Define Seed Method ---
+static async Task SeedDatabaseAsync(WebApplication app)
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
+        try
+        {
+            var context = services.GetRequiredService<AppDbContext>();
+            var userManager = services.GetRequiredService<UserManager<User>>(); // Needed for Users/Roles if seeding those
+            var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>(); // Needed for Roles
+
+            // Apply any pending migrations first
+            await context.Database.MigrateAsync();
+
+            // --- Seed Roles (ensure IDs are static) ---
+            if (!await roleManager.Roles.AnyAsync())
+            {
+                var roles = new List<IdentityRole>
+                {
+                    new IdentityRole { Name = "Member", NormalizedName = "MEMBER", Id = "c7b013f0-5201-4317-abd8-c211f91b7331", ConcurrencyStamp = "18b4a3d1-f1e4-4f2d-b0f5-c8e0b7a1e5b8" },
+                    new IdentityRole { Name = "Admin", NormalizedName = "ADMIN", Id = "c7b013f0-5201-4317-abd8-c211f91b7330", ConcurrencyStamp = "a2b9c4e2-g2f5-5a3e-c1a6-d9f1c8b2f6c9" }
+                };
+                foreach (var role in roles)
+                {
+                    await roleManager.CreateAsync(role);
+                }
+                Console.WriteLine("Seeded roles.");
+            }
+
+            // --- Seed Products with Categories ---
+            if (!context.Products.Any())
+            {
+                var products = new List<Product>
+                {
+                    new Product
+                    {
+                        Name = "Awesome T-Shirt",
+                        Description = "High-quality cotton t-shirt with awesome design.",
+                        Price = 19.99M,
+                        ImageUrl = "/assets/images/tshirt_awesome.jpg", // Use correct path
+                        Category = "T-Shirts" // Assign Category
+                    },
+                    new Product
+                    {
+                        Name = "Cool Hoodie",
+                        Description = "Warm and comfortable hoodie.",
+                        Price = 49.99M,
+                        ImageUrl = "/assets/images/hoodie_cool.jpg", // Use correct path
+                        Category = "Hoodies" // Assign Category
+                    },
+                    new Product
+                    {
+                        Name = "Stylish Mug",
+                        Description = "Ceramic mug, perfect for your morning coffee.",
+                        Price = 9.99M,
+                        ImageUrl = "/assets/images/mug_stylish.jpg", // Use correct path
+                        Category = "Accessories" // Assign Category
+                    },
+                    new Product
+                    {
+                        Name = "Basic Black T-Shirt",
+                        Description = "Simple, essential black t-shirt.",
+                        Price = 14.99M,
+                        ImageUrl = "/assets/images/tshirt_black.jpg", // Use correct path
+                        Category = "T-Shirts" // Assign Category
+                    }
+                     // Add more...
+                };
+                context.Products.AddRange(products);
+                await context.SaveChangesAsync();
+                Console.WriteLine("Seeded sample products with categories.");
+            }
+            else
+            {
+                Console.WriteLine("Products table already contains data, skipping product seeding.");
+            }
+
+            // Add user seeding here if desired
+            // ...
+
+        }
+        catch (Exception ex)
+        {
+            var logger = services.GetRequiredService<ILogger<Program>>();
+            logger.LogError(ex, "An error occurred during database seeding or migration.");
+            // Optional: throw; // Re-throw if you want seeding failure to stop the app
+        }
+    }
+}
+// --- End Seed Method Definition ---
+
+
+// --- Main Application Setup ---
 var builder = WebApplication.CreateBuilder(args);
 
-var AllowAngularDevClient = "_allowAngularDevClient"; // Define policy name
+var AllowAngularDevClient = "_allowAngularDevClient";
 
 // Add services to the container.
-
-// Configure DbContext with PostgreSQL
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-// Configure Identity services
-builder.Services.AddIdentity<User, IdentityRole>(options =>
-{
-    // Configure Identity options here if needed (e.g., password requirements)
-    // options.Password.RequireDigit = true;
-    // options.Password.RequiredLength = 8;
-})
+builder.Services.AddIdentity<User, IdentityRole>(options => { /* Identity options */ })
     .AddEntityFrameworkStores<AppDbContext>()
-    .AddDefaultTokenProviders(); // Add token providers for features like password reset
+    .AddDefaultTokenProviders();
 
-
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
-// Add Controllers service (needed for API controllers we will add later)
+// Using AddControllers instead of AddOpenApi for standard API setup
+// builder.Services.AddOpenApi(); // Removed - usually AddEndpointsApiExplorer + AddSwaggerGen
 builder.Services.AddControllers();
+// --- Add Swagger/OpenAPI if desired ---
+builder.Services.AddEndpointsApiExplorer(); // Needed for Swagger
+builder.Services.AddSwaggerGen(); // Add Swagger generation
+// --- End Swagger ---
 
-// Add CORS services
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: AllowAngularDevClient,
-                      policy =>
-                      {
-                          policy.WithOrigins("http://localhost:4200") // Allow Angular dev server origin
-                                .AllowAnyHeader()
-                                .AllowAnyMethod();
-                      });
+    options.AddPolicy(name: AllowAngularDevClient, policy =>
+    {
+        policy.WithOrigins("http://localhost:4200")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
 });
 
-// Add Authentication services and configure JWT Bearer
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer = true, // Validate the server that generated the token
-            ValidateAudience = true, // Validate the recipient of the token is authorized to receive it
-            ValidateLifetime = true, // Check if the token is expired
-            ValidateIssuerSigningKey = true, // Validate the signature of the token
-            ValidIssuer = builder.Configuration["Jwt:Issuer"], // Get Issuer from config (User Secrets)
-            ValidAudience = builder.Configuration["Jwt:Audience"], // Get Audience from config (User Secrets)
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)) // Get Key from config (User Secrets)
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
         };
     });
 
-// Register custom services
 builder.Services.AddScoped<ITokenService, TokenService>();
 
 
@@ -72,19 +159,23 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    // Use Swagger in Development
+    app.UseSwagger();
+    app.UseSwaggerUI();
+    // --- Call Seeding Logic in Development ---
+    await SeedDatabaseAsync(app); // Call the seeding method
+    // --- End Seeding Call ---
 }
 
-// Apply CORS middleware - IMPORTANT: Must be before Authentication/Authorization and MapControllers
+// --- Standard Middleware Order ---
+app.UseHttpsRedirection(); // Optional: Add HTTPS redirection
+
 app.UseCors(AllowAngularDevClient);
 
-// Add Authentication middleware - IMPORTANT: Must be before Authorization (if added later) and MapControllers
 app.UseAuthentication();
-// app.UseAuthorization(); // We'll add Authorization later if needed for specific endpoints
+app.UseAuthorization(); // Ensure this is added
 
-// Map controller routes
-app.MapControllers(); // Add this to map API controller routes
+app.MapControllers();
+// --- End Middleware ---
 
 app.Run();
-
-// Removed WeatherForecast related code
