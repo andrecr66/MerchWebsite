@@ -21,33 +21,52 @@ namespace MerchWebsite.API.Controllers
         // --- MODIFY GetProducts Method ---
         // GET: api/products?category=SomeCategory
         [HttpGet]
-        // Add category query parameter (optional)
-        public async Task<ActionResult<IEnumerable<Product>>> GetProducts([FromQuery] string? category) // <<< Add parameter
+        public async Task<ActionResult<IEnumerable<Product>>> GetProducts(
+           [FromQuery] string? category,
+           [FromQuery] string? sortBy) // <<< Add sortBy parameter back
         {
-            // Start with the base query for all products
-            var query = _context.Products.AsQueryable(); // Start as IQueryable
+            // --- Add Diagnostic Logging ---
+            Console.WriteLine($"API: Request QueryString: {Request.QueryString}"); // Log raw query string
+            foreach (var item in Request.Query) // Log each key-value pair
+            {
+                Console.WriteLine($"API: Query Param: {item.Key} = {item.Value}");
+            }
+            Console.WriteLine($"API: Request received (parameters). Category: '{category}', SortBy: '{sortBy}'"); // Log parameters
+                                                                                                                  // --- End Diagnostic Logging ---
 
-            // Check if a category filter was provided in the query string
+
+            var query = _context.Products.AsQueryable();
+
+            // Category Filtering (Keep existing logic)
             if (!string.IsNullOrEmpty(category))
             {
-                Console.WriteLine($"API: Filtering products by category: {category}"); // Add log
-                // Apply a WHERE clause to filter by the category
-                // Use case-insensitive comparison for robustness
+                Console.WriteLine($"API: Applying category filter: {category}");
                 query = query.Where(p => EF.Functions.ILike(p.Category, category));
-                // Alternatively, for exact match (case-sensitive depending on DB collation):
-                // query = query.Where(p => p.Category == category);
             }
             else
             {
-                Console.WriteLine($"API: Getting all products (no category filter)."); // Add log
+                Console.WriteLine($"API: No category filter applied.");
             }
 
-            // Execute the query (which may or may not have the Where clause)
+            // --- Add Sorting Logic Back ---
+            query = sortBy?.ToLowerInvariant() switch // Use ToLowerInvariant for case-insensitive matching
+            {
+                "priceasc" => query.OrderBy(p => p.Price),
+                "pricedesc" => query.OrderByDescending(p => p.Price),
+                "namedesc" => query.OrderByDescending(p => p.Name),
+                // Default to Name Ascending ("nameasc" or anything else/null)
+                _ => query.OrderBy(p => p.Name)
+            };
+            // Log the sort that was actually applied (handle null sortBy for default case)
+            Console.WriteLine($"API: Applying sort: {sortBy?.ToLowerInvariant() ?? "nameAsc (default)"}");
+            // --- End Sorting Logic ---
+
+
             var products = await query.ToListAsync();
+            Console.WriteLine($"API: Returning {products.Count} products.");
 
             return Ok(products);
         }
-        // --- END MODIFY GetProducts ---
 
 
         // GET: api/products/5

@@ -1,18 +1,37 @@
 <!-- client/src/app/components/product-list/product-list.component.html -->
 <h2>Products</h2>
 
-<!-- Category Filter Section -->
-<div class="category-filters" *ngIf="!isLoadingCategories && categories.length > 0">
-    <span>Filter by: </span>
-    <button *ngFor="let category of categories" (click)="filterByCategory(category)"
-        [class.active]="category === selectedCategory">
-        {{ category }}
-    </button>
-</div>
-<div *ngIf="isLoadingCategories">
-    <p>Loading categories...</p>
-</div>
-<!-- End Category Filter Section -->
+<!-- Container for Filters and Sorting -->
+<div class="filters-container">
+
+    <!-- Category Filter Section -->
+    <div class="category-filters" *ngIf="!isLoadingCategories && categories.length > 0">
+        <span>Filter by Category: </span>
+        <button *ngFor="let category of categories" (click)="filterByCategory(category)"
+            [class.active]="category === selectedCategory">
+            {{ category }}
+        </button>
+    </div>
+    <div *ngIf="isLoadingCategories">
+        <p>Loading categories...</p>
+    </div>
+    <!-- End Category Filter Section -->
+
+    <!-- Sorting Dropdown Section -->
+    <div class="sort-options">
+        <label for="sort">Sort by: </label>
+        <!-- Use two-way binding with ngModel to selectedSortBy -->
+        <!-- (change) event triggers reload (optional if ngModel sufficient) -->
+        <select id="sort" [(ngModel)]="selectedSortBy" (change)="onSortChange()">
+            <!-- Loop through sortOptions defined in component TS -->
+            <option *ngFor="let option of sortOptions" [value]="option.value">
+                {{ option.label }}
+            </option>
+        </select>
+    </div>
+    <!-- End Sorting Dropdown Section -->
+
+</div> <!-- End filters-container -->
 
 <hr> <!-- Separator -->
 
@@ -30,25 +49,52 @@
 <div *ngIf="!isLoading && !error">
     <div *ngIf="products.length > 0; else noProducts">
         <ul>
+            <!-- Loop through products array -->
             <li *ngFor="let product of products">
                 <h3>
+                    <!-- Link to product detail page -->
                     <a [routerLink]="['/products', product.id]">{{ product.name }}</a>
                 </h3>
-                <p>Category: {{product.category}}</p> <!-- Display category -->
+                <!-- Display product category -->
+                <p>Category: {{product.category}}</p>
                 <p>{{ product.description }}</p>
                 <p>Price: {{ product.price | currency }}</p>
+                <!-- Add to Cart button -->
                 <button (click)="addToCart(product)">Add to Cart</button>
             </li>
         </ul>
     </div>
+    <!-- Template shown if no products match filter or none exist -->
     <ng-template #noProducts>
-        <!-- Message when no products match filter -->
         <p>No products found{{ selectedCategory !== 'All' ? ' in category: ' + selectedCategory : '' }}.</p>
     </ng-template>
 </div>
 
-<!-- Basic styles (can move to CSS) -->
+<!-- Basic styles (can move to CSS file later) -->
 <style>
+    .filters-container {
+        display: flex;
+        justify-content: space-between;
+        /* Pushes category and sort apart */
+        align-items: center;
+        /* Vertically align items */
+        flex-wrap: wrap;
+        /* Allow items to wrap on smaller screens */
+        margin-bottom: 1em;
+        gap: 1em;
+        /* Add gap between filter/sort sections */
+    }
+
+    .category-filters {
+        margin-bottom: 0.5em;
+        /* Spacing if wrapping */
+    }
+
+    .sort-options {
+        margin-bottom: 0.5em;
+        /* Spacing if wrapping */
+    }
+
     .category-filters button {
         margin: 0 0.3em;
         padding: 0.4em 0.8em;
@@ -73,7 +119,41 @@
         background-color: #0056b3;
     }
 
+    label[for="sort"] {
+        margin-right: 0.5em;
+        font-weight: bold;
+    }
+
+    #sort {
+        padding: 0.4em;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
     hr {
         margin: 1em 0;
+    }
+
+    ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    li {
+        border-bottom: 1px solid #eee;
+        padding-bottom: 1em;
+        margin-bottom: 1em;
+    }
+
+    li h3 {
+        margin-bottom: 0.2em;
+    }
+
+    li p {
+        margin: 0.3em 0;
+    }
+
+    li button {
+        margin-top: 0.5em;
     }
 </style>

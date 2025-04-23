@@ -1,9 +1,7 @@
 // client/src/app/services/product.service.ts
 import { Injectable, inject } from '@angular/core';
-// --- Import HttpParams ---
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
-// --- End Import ---
-import { Observable, catchError, throwError, of } from 'rxjs'; // Import 'of' for getCategories
+import { Observable, catchError, throwError, of } from 'rxjs';
 import { Product } from '../models/product.model';
 import { environment } from '../../environments/environment';
 
@@ -14,16 +12,21 @@ export class ProductService {
     private http = inject(HttpClient);
     private apiUrl = `${environment.apiUrl}/products`;
 
-    // --- Modify getProducts ---
-    getProducts(category?: string): Observable<Product[]> {
+    // --- Modify getProducts signature and params ---
+    getProducts(category?: string, sortBy?: string): Observable<Product[]> { // <<< Add sortBy parameter
         let params = new HttpParams();
-        if (category && category !== 'All') { // Check if category is provided and not 'All'
+
+        // Append category if provided and not 'All'
+        if (category && category !== 'All') {
             params = params.append('category', category);
-            console.log(`ProductService: Fetching products for category: ${category}`);
-        } else {
-            console.log(`ProductService: Fetching all products`);
         }
-        // Pass params object to the get request
+
+        // Append sortBy if provided
+        if (sortBy) { // <<< Add this block
+            params = params.append('sortBy', sortBy);
+        }
+
+        console.log(`ProductService: Fetching products. Category: ${category ?? 'All'}, SortBy: ${sortBy ?? 'Default'}. Params:`, params.toString());
         return this.http.get<Product[]>(this.apiUrl, { params }).pipe(
             catchError(this.handleError)
         );
