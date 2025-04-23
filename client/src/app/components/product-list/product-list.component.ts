@@ -6,15 +6,16 @@ import { Product } from '../../models/product.model';
 import { CartService } from '../../services/cart.service'; // <<<--- Import CartService
 import { AddCartItemDto } from '../../models/cart/add-cart-item.dto'; // <<<--- Import DTO
 
+import { RouterLink } from '@angular/router'; // <<< ADD RouterLink Import
+
 @Component({
   selector: 'app-product-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink], // <<< ADD RouterLink to imports
   templateUrl: './product-list.component.html',
-  styleUrls: ['./product-list.component.css'] // <<<--- Use plural styleUrls
+  styleUrls: ['./product-list.component.css']
 })
 export class ProductListComponent implements OnInit {
-
   products: Product[] = [];
   isLoading = true;
   error: string | null = null;

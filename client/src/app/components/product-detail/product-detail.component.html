@@ -1,0 +1,120 @@
+<!-- client/src/app/components/product-detail/product-detail.component.html -->
+<div class="product-detail-container">
+
+    <!-- Loading Indicator -->
+    <div *ngIf="isLoading" class="loading">
+        <p>Loading product details...</p>
+        <!-- Add a spinner animation here later -->
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="error" class="error-message">
+        <p>Error: {{ error }}</p>
+        <a routerLink="/products">Back to Products</a>
+    </div>
+
+    <!-- Product Details (only show if product loaded and no error) -->
+    <div *ngIf="product && !isLoading && !error" class="product-content">
+        <h2>{{ product.name }}</h2>
+
+        <div class="product-image">
+            <!-- Display image (use placeholder if imageUrl is missing) -->
+            <img [src]="product.imageUrl || '/assets/images/placeholder.png'" alt="{{ product.name }}">
+            <!-- Add logic for multiple images later if needed -->
+        </div>
+
+        <div class="product-info">
+            <p class="price">{{ product.price | currency }}</p>
+
+            <h3>Description</h3>
+            <p class="description">{{ product.description || 'No description available.' }}</p>
+
+            <!-- Placeholder for Specs (Sizes, Colors, Availability) -->
+            <!--
+        <div *ngIf="product.sizes && product.sizes.length > 0">
+            <h4>Available Sizes:</h4>
+            <span>{{ product.sizes.join(', ') }}</span>
+        </div>
+        <div *ngIf="product.colors && product.colors.length > 0">
+            <h4>Available Colors:</h4>
+            <span>{{ product.colors.join(', ') }}</span>
+        </div>
+        <p *ngIf="product.availability">Availability: {{ product.availability }}</p>
+        -->
+            <!-- End Placeholder -->
+
+            <!-- Add to Cart Button -->
+            <button (click)="addToCart()" class="add-to-cart-button">Add to Cart</button>
+        </div>
+    </div>
+
+    <!-- Link to go back if product failed to load but wasn't a critical error -->
+    <div *ngIf="!product && !isLoading && !error">
+        <p>Product details could not be displayed.</p>
+        <a routerLink="/products">Back to Products</a>
+    </div>
+
+</div>
+
+<!-- Basic Styling (can move to CSS file) -->
+<style>
+    .product-detail-container {
+        padding: 1em;
+    }
+
+    .loading,
+    .error-message {
+        text-align: center;
+        padding: 2em;
+    }
+
+    .error-message {
+        color: red;
+    }
+
+    .product-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2em;
+        align-items: start;
+    }
+
+    .product-image img {
+        max-width: 100%;
+        height: auto;
+        border: 1px solid #eee;
+    }
+
+    .price {
+        font-size: 1.5em;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 1em;
+    }
+
+    .description {
+        line-height: 1.6;
+    }
+
+    .add-to-cart-button {
+        margin-top: 1em;
+        padding: 0.8em 1.5em;
+        font-size: 1em;
+        cursor: pointer;
+        background-color: #28a745;
+        color: white;
+        border: none;
+        border-radius: 4px;
+    }
+
+    .add-to-cart-button:hover {
+        background-color: #218838;
+    }
+
+    /* Basic responsive behavior */
+    @media (max-width: 768px) {
+        .product-content {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
