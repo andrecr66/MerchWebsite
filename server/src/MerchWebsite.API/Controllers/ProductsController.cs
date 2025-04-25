@@ -22,45 +22,62 @@ namespace MerchWebsite.API.Controllers
         // GET: api/products?category=SomeCategory
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Product>>> GetProducts(
-           [FromQuery] string? category,
-           [FromQuery] string? sortBy) // <<< Add sortBy parameter back
+        [FromQuery] string? category,
+        [FromQuery] string? sortBy,
+        [FromQuery] string? gender,     // <<< Add gender param
+        [FromQuery] decimal? minPrice, // <<< Add minPrice param
+        [FromQuery] decimal? maxPrice) // <<< Add maxPrice param
         {
-            // --- Add Diagnostic Logging ---
-            Console.WriteLine($"API: Request QueryString: {Request.QueryString}"); // Log raw query string
-            foreach (var item in Request.Query) // Log each key-value pair
-            {
-                Console.WriteLine($"API: Query Param: {item.Key} = {item.Value}");
-            }
-            Console.WriteLine($"API: Request received (parameters). Category: '{category}', SortBy: '{sortBy}'"); // Log parameters
-                                                                                                                  // --- End Diagnostic Logging ---
-
+            // --- Update Logging ---
+            Console.WriteLine($"API: Request QueryString: {Request.QueryString}");
+            foreach (var item in Request.Query) { Console.WriteLine($"API: Query Param: {item.Key} = {item.Value}"); }
+            Console.WriteLine($"API: Request received (parameters). Category: '{category}', SortBy: '{sortBy}', Gender: '{gender}', MinPrice: {minPrice}, MaxPrice: {maxPrice}");
+            // --- End Update Logging ---
 
             var query = _context.Products.AsQueryable();
 
-            // Category Filtering (Keep existing logic)
+            // --- Apply Filters ---
             if (!string.IsNullOrEmpty(category))
             {
                 Console.WriteLine($"API: Applying category filter: {category}");
                 query = query.Where(p => EF.Functions.ILike(p.Category, category));
             }
-            else
-            {
-                Console.WriteLine($"API: No category filter applied.");
-            }
 
-            // --- Add Sorting Logic Back ---
-            query = sortBy?.ToLowerInvariant() switch // Use ToLowerInvariant for case-insensitive matching
+            // --- ADD Gender Filter ---
+            if (!string.IsNullOrEmpty(gender))
+            {
+                Console.WriteLine($"API: Applying gender filter: {gender}");
+                // Assumes Gender stores values like "Men", "Women", "Unisex" etc.
+                // Use ILike for case-insensitivity. Handle null Gender property on products.
+                query = query.Where(p => p.Gender != null && EF.Functions.ILike(p.Gender, gender));
+            }
+            // --- END Gender Filter ---
+
+            // --- ADD Price Filters ---
+            if (minPrice.HasValue)
+            {
+                Console.WriteLine($"API: Applying minPrice filter: {minPrice.Value}");
+                query = query.Where(p => p.Price >= minPrice.Value);
+            }
+            if (maxPrice.HasValue)
+            {
+                Console.WriteLine($"API: Applying maxPrice filter: {maxPrice.Value}");
+                query = query.Where(p => p.Price <= maxPrice.Value);
+            }
+            // --- END Price Filters ---
+            // --- End Apply Filters ---
+
+
+            // --- Sorting Logic (Keep existing) ---
+            query = sortBy?.ToLowerInvariant() switch
             {
                 "priceasc" => query.OrderBy(p => p.Price),
                 "pricedesc" => query.OrderByDescending(p => p.Price),
                 "namedesc" => query.OrderByDescending(p => p.Name),
-                // Default to Name Ascending ("nameasc" or anything else/null)
                 _ => query.OrderBy(p => p.Name)
             };
-            // Log the sort that was actually applied (handle null sortBy for default case)
             Console.WriteLine($"API: Applying sort: {sortBy?.ToLowerInvariant() ?? "nameAsc (default)"}");
             // --- End Sorting Logic ---
-
 
             var products = await query.ToListAsync();
             Console.WriteLine($"API: Returning {products.Count} products.");

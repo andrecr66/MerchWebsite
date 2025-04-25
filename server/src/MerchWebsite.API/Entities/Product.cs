@@ -9,22 +9,25 @@ namespace MerchWebsite.API.Entities
         public int Id { get; set; }
 
         [Required]
-        [MaxLength(100)] // Example max length
+        [MaxLength(100)]
         public string Name { get; set; } = string.Empty;
 
-        public string? Description { get; set; } // Keep nullable
+        public string? Description { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal Price { get; set; }
 
-        public string? ImageUrl { get; set; } // Keep nullable
+        public string? ImageUrl { get; set; }
 
-        // --- ADD Category Property ---
         [Required]
-        [MaxLength(50)] // Example max length
-        public string Category { get; set; } = "Uncategorized"; // Default value? Or handle null? Required seems better.
-        // --- END Category Property ---
+        [MaxLength(50)]
+        public string Category { get; set; } = "Uncategorized";
 
-        // Add other properties like Sizes, Colors etc. later if needed
+        // --- ADD Gender Property ---
+        [MaxLength(20)] // Example: "Men", "Women", "Unisex", "Kids"
+        public string? Gender { get; set; } // Nullable string for gender
+        // --- END Gender Property ---
+
+        // Size/Color would likely require a separate ProductVariant entity later
     }
 }

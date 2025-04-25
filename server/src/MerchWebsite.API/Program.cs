@@ -23,7 +23,7 @@ static async Task SeedDatabaseAsync(WebApplication app)
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>(); // Needed for Roles
 
             // Apply any pending migrations first
-            await context.Database.MigrateAsync();
+            //await context.Database.MigrateAsync();
 
             // --- Seed Roles (ensure IDs are static) ---
             if (!await roleManager.Roles.AnyAsync())
@@ -43,41 +43,35 @@ static async Task SeedDatabaseAsync(WebApplication app)
             // --- Seed Products with Categories ---
             if (!context.Products.Any())
             {
+                // Inside SeedDatabaseAsync in Program.cs, within the product list creation
+
                 var products = new List<Product>
                 {
-                    new Product
-                    {
-                        Name = "Awesome T-Shirt",
-                        Description = "High-quality cotton t-shirt with awesome design.",
-                        Price = 19.99M,
-                        ImageUrl = "/assets/images/tshirt_awesome.jpg", // Use correct path
-                        Category = "T-Shirts" // Assign Category
+                    new Product {
+                        Name = "Awesome T-Shirt", /*...,*/ Category = "T-Shirts",
+                        Gender = "Unisex" // <<< Add Gender
                     },
-                    new Product
-                    {
-                        Name = "Cool Hoodie",
-                        Description = "Warm and comfortable hoodie.",
-                        Price = 49.99M,
-                        ImageUrl = "/assets/images/hoodie_cool.jpg", // Use correct path
-                        Category = "Hoodies" // Assign Category
+                    new Product {
+                        Name = "Cool Hoodie", /*...,*/ Category = "Hoodies",
+                        Gender = "Unisex" // <<< Add Gender
                     },
-                    new Product
-                    {
-                        Name = "Stylish Mug",
-                        Description = "Ceramic mug, perfect for your morning coffee.",
-                        Price = 9.99M,
-                        ImageUrl = "/assets/images/mug_stylish.jpg", // Use correct path
-                        Category = "Accessories" // Assign Category
+                    new Product {
+                        Name = "Stylish Mug", /*...,*/ Category = "Accessories",
+                        Gender = null // <<< Example: No specific gender
                     },
-                    new Product
-                    {
-                        Name = "Basic Black T-Shirt",
-                        Description = "Simple, essential black t-shirt.",
-                        Price = 14.99M,
-                        ImageUrl = "/assets/images/tshirt_black.jpg", // Use correct path
-                        Category = "T-Shirts" // Assign Category
+                    new Product {
+                        Name = "Basic Black T-Shirt", /*...,*/ Category = "T-Shirts",
+                        Gender = "Men" // <<< Add Gender
+                    },
+                    // Add a "Women's" item for testing
+                    new Product {
+                        Name = "Fitted V-Neck T-Shirt",
+                        Description = "Soft, fitted v-neck.",
+                        Price = 18.99M,
+                        ImageUrl = "/assets/images/tshirt_vneck_women.jpg",
+                        Category = "T-Shirts",
+                        Gender = "Women" // <<< Add Gender
                     }
-                     // Add more...
                 };
                 context.Products.AddRange(products);
                 await context.SaveChangesAsync();

@@ -23,6 +23,12 @@ export class ProductListComponent implements OnInit {
   isLoading = true; // For products
   isLoadingCategories = true; // For categories
   error: string | null = null; // For product loading errors
+  genderOptions: string[] = ['All', 'Men', 'Women', 'Unisex']; // Example options
+  selectedGender: string = 'All'; // Default selection
+  minPrice: number | null = null; // Input for min price
+  maxPrice: number | null = null;
+
+
 
   // Filter/Sort State
   selectedCategory: string = 'All'; // Default category filter
@@ -48,27 +54,29 @@ export class ProductListComponent implements OnInit {
 
   // --- Data Loading Methods ---
 
+  // --- Modify loadProducts to include new filters ---
   loadProducts(): void {
     this.isLoading = true;
     this.error = null;
+    // Read current filter/sort state from component properties
     const categoryToFetch = this.selectedCategory === 'All' ? undefined : this.selectedCategory;
-    const sortByToFetch = this.selectedSortBy; // Get current selection
+    const sortByToFetch = this.selectedSortBy;
+    const genderToFetch = this.selectedGender === 'All' ? undefined : this.selectedGender; // <<< Read gender
+    const minPriceToFetch = this.minPrice ?? undefined; // <<< Read min price (pass undefined if null)
+    const maxPriceToFetch = this.maxPrice ?? undefined; // <<< Read max price (pass undefined if null)
 
-    // --- ADD LOG ---
-    console.log(`[loadProducts] Called. Category: ${categoryToFetch ?? 'All'}, SortBy: ${sortByToFetch}`);
-    // --- END LOG ---
+    console.log(`ProductListComponent: Loading products. Category: ${this.selectedCategory}, SortBy: ${sortByToFetch}, Gender: ${this.selectedGender}, MinPrice: ${minPriceToFetch ?? 'N/A'}, MaxPrice: ${maxPriceToFetch ?? 'N/A'}`);
 
-    this.productService.getProducts(categoryToFetch, sortByToFetch).subscribe({
-      next: (data) => {
-        this.products = data;
-        this.isLoading = false;
-        console.log(`Products loaded:`, data);
-      },
-      error: (err) => {
-        console.error('Error fetching products:', err);
-        this.error = err.message || 'Failed to load products.';
-        this.isLoading = false;
-      }
+    this.productService.getProducts(
+      categoryToFetch,
+      sortByToFetch,
+      genderToFetch,
+      minPriceToFetch,
+      maxPriceToFetch
+    ).subscribe({
+      // ... next/error handlers ...
+      next: (data) => { this.products = data; this.isLoading = false; /*...*/ },
+      error: (err) => { this.error = err.message || 'Failed...'; this.isLoading = false; /*...*/ }
     });
   }
 
@@ -96,6 +104,19 @@ export class ProductListComponent implements OnInit {
       this.selectedCategory = category;
       this.loadProducts();
     }
+  }
+
+  filterByGender(gender: string): void {
+    if (this.selectedGender !== gender) {
+      this.selectedGender = gender;
+      this.loadProducts();
+    }
+  }
+
+  applyPriceFilter(): void {
+    console.log(`Applying price filter: Min=${this.minPrice}, Max=${this.maxPrice}`);
+    // Optional: Add validation here if needed (e.g., min <= max)
+    this.loadProducts(); // Reload with current price values
   }
 
   onSortChange(): void {

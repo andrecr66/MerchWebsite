@@ -5,155 +5,180 @@
 <div class="filters-container">
 
     <!-- Category Filter Section -->
-    <div class="category-filters" *ngIf="!isLoadingCategories && categories.length > 0">
-        <span>Filter by Category: </span>
-        <button *ngFor="let category of categories" (click)="filterByCategory(category)"
-            [class.active]="category === selectedCategory">
-            {{ category }}
-        </button>
+    <div class="filters-container">
+        <!-- Category Filters -->
+        <div class="category-filters" *ngIf="!isLoadingCategories && categories.length > 0">
+            <span>Category: </span>
+            <button *ngFor="let category of categories" (click)="filterByCategory(category)"
+                [class.active]="category === selectedCategory">
+                {{ category }}
+            </button>
+        </div>
+        <div *ngIf="isLoadingCategories">
+            <p>Loading categories...</p>
+        </div>
+        <!-- End Category Filter Section -->
+
+
+        <!-- Gender Filters -->
+        <div class="gender-filters">
+            <span>Gender: </span>
+            <button *ngFor="let gender of genderOptions" (click)="filterByGender(gender)"
+                [class.active]="gender === selectedGender">
+                {{ gender }}
+            </button>
+        </div>
+
+        <div class="price-filters">
+            <span>Price: </span>
+            <input type="number" placeholder="Min $" [(ngModel)]="minPrice" style="width: 70px;">
+            <span> - </span>
+            <input type="number" placeholder="Max $" [(ngModel)]="maxPrice" style="width: 70px;">
+            <button (click)="applyPriceFilter()">Apply</button>
+        </div>
+
+        <!-- Sorting Dropdown Section -->
+        <div class="sort-options">
+            <label for="sort">Sort by: </label>
+            <select id="sort" [(ngModel)]="selectedSortBy" (change)="onSortChange()">
+                <option *ngFor="let option of sortOptions" [value]="option.value">{{ option.label }}</option>
+            </select>
+        </div>
+
+        <!-- End Sorting Dropdown Section -->
+
+    </div> <!-- End filters-container -->
+
+    <hr> <!-- Separator -->
+
+    <!-- Loading Indicator for Products -->
+    <div *ngIf="isLoading">
+        <p>Loading products...</p>
     </div>
-    <div *ngIf="isLoadingCategories">
-        <p>Loading categories...</p>
+
+    <!-- Error Message for Products -->
+    <div *ngIf="error">
+        <p style="color: red;">{{ error }}</p>
     </div>
-    <!-- End Category Filter Section -->
 
-    <!-- Sorting Dropdown Section -->
-    <div class="sort-options">
-        <label for="sort">Sort by: </label>
-        <!-- Use two-way binding with ngModel to selectedSortBy -->
-        <!-- (change) event triggers reload (optional if ngModel sufficient) -->
-        <select id="sort" [(ngModel)]="selectedSortBy" (change)="onSortChange()">
-            <!-- Loop through sortOptions defined in component TS -->
-            <option *ngFor="let option of sortOptions" [value]="option.value">
-                {{ option.label }}
-            </option>
-        </select>
+    <!-- Product List -->
+    <div *ngIf="!isLoading && !error">
+        <div *ngIf="products.length > 0; else noProducts">
+            <ul>
+                <!-- Loop through products array -->
+                <li *ngFor="let product of products">
+                    <h3>
+                        <!-- Link to product detail page -->
+                        <a [routerLink]="['/products', product.id]">{{ product.name }}</a>
+                    </h3>
+                    <!-- Display product category -->
+                    <p>Category: {{product.category}}</p>
+                    <p>{{ product.description }}</p>
+                    <p>Price: {{ product.price | currency }}</p>
+                    <!-- Add to Cart button -->
+                    <button (click)="addToCart(product)">Add to Cart</button>
+                </li>
+            </ul>
+        </div>
+        <!-- Template shown if no products match filter or none exist -->
+        <ng-template #noProducts>
+            <p>No products found{{ selectedCategory !== 'All' ? ' in category: ' + selectedCategory : '' }}.</p>
+        </ng-template>
     </div>
-    <!-- End Sorting Dropdown Section -->
 
-</div> <!-- End filters-container -->
+    <!-- Basic styles (can move to CSS file later) -->
+    <style>
+        .filters-container {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 1em;
+            gap: 1.5em;
+        }
 
-<hr> <!-- Separator -->
+        .category-filters,
+        .gender-filters,
+        .price-filters,
+        .sort-options {
+            margin-bottom: 0.5em;
+        }
 
-<!-- Loading Indicator for Products -->
-<div *ngIf="isLoading">
-    <p>Loading products...</p>
-</div>
 
-<!-- Error Message for Products -->
-<div *ngIf="error">
-    <p style="color: red;">{{ error }}</p>
-</div>
 
-<!-- Product List -->
-<div *ngIf="!isLoading && !error">
-    <div *ngIf="products.length > 0; else noProducts">
-        <ul>
-            <!-- Loop through products array -->
-            <li *ngFor="let product of products">
-                <h3>
-                    <!-- Link to product detail page -->
-                    <a [routerLink]="['/products', product.id]">{{ product.name }}</a>
-                </h3>
-                <!-- Display product category -->
-                <p>Category: {{product.category}}</p>
-                <p>{{ product.description }}</p>
-                <p>Price: {{ product.price | currency }}</p>
-                <!-- Add to Cart button -->
-                <button (click)="addToCart(product)">Add to Cart</button>
-            </li>
-        </ul>
-    </div>
-    <!-- Template shown if no products match filter or none exist -->
-    <ng-template #noProducts>
-        <p>No products found{{ selectedCategory !== 'All' ? ' in category: ' + selectedCategory : '' }}.</p>
-    </ng-template>
-</div>
+        .category-filters button,
+        .gender-filters button {
+            margin: 0 0.3em;
+            padding: 0.4em 0.8em;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            margin-right: 5px;
+        }
 
-<!-- Basic styles (can move to CSS file later) -->
-<style>
-    .filters-container {
-        display: flex;
-        justify-content: space-between;
-        /* Pushes category and sort apart */
-        align-items: center;
-        /* Vertically align items */
-        flex-wrap: wrap;
-        /* Allow items to wrap on smaller screens */
-        margin-bottom: 1em;
-        gap: 1em;
-        /* Add gap between filter/sort sections */
-    }
+        .category-filters button.active,
+        .gender-filters button.active {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+            font-weight: bold;
+        }
 
-    .category-filters {
-        margin-bottom: 0.5em;
-        /* Spacing if wrapping */
-    }
+        .category-filters button:hover {
+            background-color: #e0e0e0;
+        }
 
-    .sort-options {
-        margin-bottom: 0.5em;
-        /* Spacing if wrapping */
-    }
+        .category-filters button.active:hover {
+            background-color: #0056b3;
+        }
 
-    .category-filters button {
-        margin: 0 0.3em;
-        padding: 0.4em 0.8em;
-        cursor: pointer;
-        border: 1px solid #ccc;
-        background-color: #f0f0f0;
-        border-radius: 4px;
-    }
+        .price-filters input {
+            margin: 0 0.3em;
+            padding: 0.4em;
+            width: 70px;
+        }
 
-    .category-filters button.active {
-        background-color: #007bff;
-        color: white;
-        border-color: #007bff;
-        font-weight: bold;
-    }
+        .price-filters button {
+            margin-left: 0.5em;
+            padding: 0.4em 0.8em;
+        }
 
-    .category-filters button:hover {
-        background-color: #e0e0e0;
-    }
+        label[for="sort"] {
+            margin-right: 0.5em;
+            font-weight: bold;
+        }
 
-    .category-filters button.active:hover {
-        background-color: #0056b3;
-    }
+        #sort {
+            padding: 0.4em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
 
-    label[for="sort"] {
-        margin-right: 0.5em;
-        font-weight: bold;
-    }
+        hr {
+            margin: 1em 0;
+        }
 
-    #sort {
-        padding: 0.4em;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-    }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
 
-    hr {
-        margin: 1em 0;
-    }
+        li {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 1em;
+            margin-bottom: 1em;
+        }
 
-    ul {
-        list-style: none;
-        padding: 0;
-    }
+        li h3 {
+            margin-bottom: 0.2em;
+        }
 
-    li {
-        border-bottom: 1px solid #eee;
-        padding-bottom: 1em;
-        margin-bottom: 1em;
-    }
+        li p {
+            margin: 0.3em 0;
+        }
 
-    li h3 {
-        margin-bottom: 0.2em;
-    }
-
-    li p {
-        margin: 0.3em 0;
-    }
-
-    li button {
-        margin-top: 0.5em;
-    }
-</style>
+        li button {
+            margin-top: 0.5em;
+        }
+    </style>

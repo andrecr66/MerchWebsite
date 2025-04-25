@@ -5,5 +5,6 @@ export interface Product {
     description?: string | null;
     price: number;
     imageUrl?: string | null;
-    category: string; // <<<=== MAKE SURE THIS LINE IS PRESENT AND SAVED
+    category: string;
+    gender?: string | null; // <<< ADD Optional gender property
 }
