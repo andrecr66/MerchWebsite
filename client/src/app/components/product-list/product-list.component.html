@@ -1,184 +1,248 @@
 <!-- client/src/app/components/product-list/product-list.component.html -->
-<h2>Products</h2>
+<div class="product-page-container">
+    <h2>Products</h2>
 
-<!-- Container for Filters and Sorting -->
-<div class="filters-container">
-
-    <!-- Category Filter Section -->
-    <div class="filters-container">
-        <!-- Category Filters -->
-        <div class="category-filters" *ngIf="!isLoadingCategories && categories.length > 0">
-            <span>Category: </span>
-            <button *ngFor="let category of categories" (click)="filterByCategory(category)"
-                [class.active]="category === selectedCategory">
-                {{ category }}
-            </button>
-        </div>
-        <div *ngIf="isLoadingCategories">
-            <p>Loading categories...</p>
-        </div>
-        <!-- End Category Filter Section -->
-
-
-        <!-- Gender Filters -->
-        <div class="gender-filters">
-            <span>Gender: </span>
-            <button *ngFor="let gender of genderOptions" (click)="filterByGender(gender)"
-                [class.active]="gender === selectedGender">
-                {{ gender }}
-            </button>
+    <!-- Filters & Sorting Section -->
+    <section class="controls-section">
+        <!-- Grouping Filters -->
+        <div class="filter-group">
+            <label>Category:</label>
+            <div class="filter-options" *ngIf="!isLoadingCategories && categories.length > 0">
+                <button *ngFor="let category of categories" (click)="filterByCategory(category)"
+                    [class.active]="category === selectedCategory">
+                    {{ category }}
+                </button>
+            </div>
+            <div *ngIf="isLoadingCategories">
+                <span>Loading categories...</span>
+            </div>
         </div>
 
-        <div class="price-filters">
-            <span>Price: </span>
-            <input type="number" placeholder="Min $" [(ngModel)]="minPrice" style="width: 70px;">
-            <span> - </span>
-            <input type="number" placeholder="Max $" [(ngModel)]="maxPrice" style="width: 70px;">
-            <button (click)="applyPriceFilter()">Apply</button>
+        <div class="filter-group">
+            <label>Gender:</label>
+            <div class="filter-options">
+                <button *ngFor="let gender of genderOptions" (click)="filterByGender(gender)"
+                    [class.active]="gender === selectedGender">
+                    {{ gender }}
+                </button>
+            </div>
         </div>
 
-        <!-- Sorting Dropdown Section -->
-        <div class="sort-options">
-            <label for="sort">Sort by: </label>
+        <div class="filter-group price-filter">
+            <label>Price Range:</label>
+            <div class="price-inputs">
+                <input type="number" placeholder="Min $" [(ngModel)]="minPrice" min="0">
+                <span>-</span>
+                <input type="number" placeholder="Max $" [(ngModel)]="maxPrice" min="0">
+                <button (click)="applyPriceFilter()">Apply</button>
+            </div>
+            <!-- Display Price Filter Errors -->
+            <div *ngIf="error" class="filter-error">
+                {{ error }}
+            </div>
+        </div>
+
+        <!-- Sorting Dropdown -->
+        <div class="filter-group sort-filter">
+            <label for="sort">Sort by:</label>
             <select id="sort" [(ngModel)]="selectedSortBy" (change)="onSortChange()">
-                <option *ngFor="let option of sortOptions" [value]="option.value">{{ option.label }}</option>
+                <option *ngFor="let option of sortOptions" [value]="option.value">
+                    {{ option.label }}
+                </option>
             </select>
         </div>
+    </section>
+    <!-- End Filters & Sorting Section -->
 
-        <!-- End Sorting Dropdown Section -->
-
-    </div> <!-- End filters-container -->
-
-    <hr> <!-- Separator -->
+    <hr>
 
     <!-- Loading Indicator for Products -->
-    <div *ngIf="isLoading">
+    <div *ngIf="isLoading" class="loading-message">
         <p>Loading products...</p>
     </div>
 
-    <!-- Error Message for Products -->
-    <div *ngIf="error">
-        <p style="color: red;">{{ error }}</p>
-    </div>
-
-    <!-- Product List -->
-    <div *ngIf="!isLoading && !error">
+    <!-- Product Grid Section -->
+    <!-- Note: Removed the specific product error display here, using the filter-error above -->
+    <section class="product-grid" *ngIf="!isLoading && !error">
         <div *ngIf="products.length > 0; else noProducts">
-            <ul>
-                <!-- Loop through products array -->
-                <li *ngFor="let product of products">
-                    <h3>
-                        <!-- Link to product detail page -->
-                        <a [routerLink]="['/products', product.id]">{{ product.name }}</a>
-                    </h3>
-                    <!-- Display product category -->
-                    <p>Category: {{product.category}}</p>
-                    <p>{{ product.description }}</p>
-                    <p>Price: {{ product.price | currency }}</p>
-                    <!-- Add to Cart button -->
-                    <button (click)="addToCart(product)">Add to Cart</button>
-                </li>
-            </ul>
+            <!-- Product Card Loop -->
+            <div class="product-card" *ngFor="let product of products">
+                <!-- Make Image a Link (Add later if needed) -->
+                <!-- <img [src]="product.imageUrl || '/assets/images/placeholder.png'" alt="{{ product.name }}"> -->
+                <h3>
+                    <a [routerLink]="['/products', product.id]">{{ product.name }}</a>
+                </h3>
+                <p class="product-category">{{ product.category }}{{ product.gender ? ' (' + product.gender + ')' : ''
+                    }}</p>
+                <!-- <p class="product-description">{{ product.description }}</p> -->
+                <p class="product-price">{{ product.price | currency }}</p>
+                <button class="add-cart-button" (click)="addToCart(product)">Add to Cart</button>
+            </div>
+            <!-- End Product Card Loop -->
         </div>
-        <!-- Template shown if no products match filter or none exist -->
         <ng-template #noProducts>
-            <p>No products found{{ selectedCategory !== 'All' ? ' in category: ' + selectedCategory : '' }}.</p>
+            <p class="no-products-message">No products found{{ selectedCategory !== 'All' || selectedGender !== 'All' ||
+                minPrice !== null || maxPrice !== null ? ' matching your criteria' : '' }}.</p>
         </ng-template>
-    </div>
+    </section>
+    <!-- End Product Grid Section -->
 
-    <!-- Basic styles (can move to CSS file later) -->
-    <style>
-        .filters-container {
-            display: flex;
-            justify-content: flex-start;
-            align-items: center;
-            flex-wrap: wrap;
-            margin-bottom: 1em;
-            gap: 1.5em;
-        }
+</div>
 
-        .category-filters,
-        .gender-filters,
-        .price-filters,
-        .sort-options {
-            margin-bottom: 0.5em;
-        }
+<!-- Styles (Move to product-list.component.css later) -->
+<style>
+    .product-page-container {
+        padding: 1em;
+    }
 
+    .controls-section {
+        display: flex;
+        flex-wrap: wrap;
+        /* Allow wrapping */
+        gap: 1.5em;
+        /* Space between filter groups */
+        margin-bottom: 1.5em;
+        padding-bottom: 1em;
+        border-bottom: 1px solid #eee;
+    }
 
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        /* Stack label above options */
+        gap: 0.5em;
+        /* Space between label and options */
+    }
 
-        .category-filters button,
-        .gender-filters button {
-            margin: 0 0.3em;
-            padding: 0.4em 0.8em;
-            cursor: pointer;
-            border: 1px solid #ccc;
-            background-color: #f0f0f0;
-            border-radius: 4px;
-            margin-right: 5px;
-        }
+    .filter-group label {
+        font-weight: bold;
+        margin-bottom: 0.2em;
+        font-size: 0.9em;
+        color: #555;
+    }
 
-        .category-filters button.active,
-        .gender-filters button.active {
-            background-color: #007bff;
-            color: white;
-            border-color: #007bff;
-            font-weight: bold;
-        }
+    .filter-options button,
+    .price-inputs button,
+    .sort-options select {
+        margin-right: 0.5em;
+        /* Space between buttons/inputs */
+        padding: 0.4em 0.8em;
+        cursor: pointer;
+        border: 1px solid #ccc;
+        background-color: #f0f0f0;
+        border-radius: 4px;
+        font-size: 0.9em;
+    }
 
-        .category-filters button:hover {
-            background-color: #e0e0e0;
-        }
+    .filter-options button.active {
+        /* Style for active filter buttons */
+        background-color: #007bff;
+        color: white;
+        border-color: #007bff;
+    }
 
-        .category-filters button.active:hover {
-            background-color: #0056b3;
-        }
+    .filter-options button:hover:not(.active) {
+        background-color: #e0e0e0;
+    }
 
-        .price-filters input {
-            margin: 0 0.3em;
-            padding: 0.4em;
-            width: 70px;
-        }
+    .price-inputs input[type="number"] {
+        width: 70px;
+        padding: 0.4em;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        margin: 0 0.3em;
+    }
 
-        .price-filters button {
-            margin-left: 0.5em;
-            padding: 0.4em 0.8em;
-        }
+    .price-inputs span {
+        margin: 0 0.2em;
+    }
 
-        label[for="sort"] {
-            margin-right: 0.5em;
-            font-weight: bold;
-        }
+    .filter-error {
+        color: red;
+        font-size: 0.8em;
+        margin-top: 0.3em;
+        flex-basis: 100%;
+        /* Allow error to take full width if needed */
+    }
 
-        #sort {
-            padding: 0.4em;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
+    .loading-message,
+    .no-products-message {
+        text-align: center;
+        padding: 2em;
+        color: #777;
+    }
 
-        hr {
-            margin: 1em 0;
-        }
+    .product-grid {
+        display: grid;
+        /* Adjust columns based on screen size */
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        /* Responsive grid */
+        gap: 1.5em;
+        /* Space between product cards */
+    }
 
-        ul {
-            list-style: none;
-            padding: 0;
-        }
+    .product-card {
+        border: 1px solid #eee;
+        padding: 1em;
+        text-align: center;
+        border-radius: 5px;
+        background-color: #fff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+        /* Stack content vertically */
+        justify-content: space-between;
+        /* Pushes button to bottom */
+    }
 
-        li {
-            border-bottom: 1px solid #eee;
-            padding-bottom: 1em;
-            margin-bottom: 1em;
-        }
+    .product-card img {
+        /* Uncomment if using images */
+        /* max-width: 100%; height: 150px; object-fit: contain; margin-bottom: 0.5em; */
+    }
 
-        li h3 {
-            margin-bottom: 0.2em;
-        }
+    .product-card h3 {
+        font-size: 1.1em;
+        margin: 0.5em 0 0.2em 0;
+    }
 
-        li p {
-            margin: 0.3em 0;
-        }
+    .product-card h3 a {
+        text-decoration: none;
+        color: #333;
+    }
 
-        li button {
-            margin-top: 0.5em;
-        }
-    </style>
+    .product-card h3 a:hover {
+        color: #007bff;
+    }
+
+    .product-category {
+        font-size: 0.8em;
+        color: #777;
+        margin-bottom: 0.5em;
+    }
+
+    .product-price {
+        font-weight: bold;
+        margin: 0.5em 0;
+    }
+
+    .add-cart-button {
+        padding: 0.5em 1em;
+        background-color: #28a745;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-top: auto;
+        /* Pushes button to bottom */
+    }
+
+    .add-cart-button:hover {
+        background-color: #218838;
+    }
+
+    hr {
+        margin: 1.5em 0;
+        border: 0;
+        border-top: 1px solid #eee;
+    }
+</style>

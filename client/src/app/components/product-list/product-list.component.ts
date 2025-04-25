@@ -113,10 +113,47 @@ export class ProductListComponent implements OnInit {
     }
   }
 
+  // Inside ProductListComponent class
+
   applyPriceFilter(): void {
-    console.log(`Applying price filter: Min=${this.minPrice}, Max=${this.maxPrice}`);
-    // Optional: Add validation here if needed (e.g., min <= max)
-    this.loadProducts(); // Reload with current price values
+    // --- ADD Validation ---
+    this.error = null; // Clear previous errors specific to filtering
+    let min = this.minPrice;
+    let max = this.maxPrice;
+
+    // Treat empty input as null (no filter)
+    if (min === null || min === undefined || String(min).trim() === '') min = null;
+    if (max === null || max === undefined || String(max).trim() === '') max = null;
+
+    // Ensure values are numbers if not null
+    min = (min !== null) ? Number(min) : null;
+    max = (max !== null) ? Number(max) : null;
+
+    // Check for non-numeric input after conversion (isNaN) or negative values
+    if ((min !== null && (isNaN(min) || min < 0)) || (max !== null && (isNaN(max) || max < 0))) {
+      console.error("Price filter validation: Invalid number or negative value.");
+      this.error = "Please enter valid positive numbers for price range.";
+      // Optionally reset values:
+      // this.minPrice = null;
+      // this.maxPrice = null;
+      return; // Stop processing
+    }
+
+
+    // Check if min price is greater than max price (only if both are provided)
+    if (min !== null && max !== null && min > max) {
+      console.error(`Price filter validation: Min price (${min}) cannot be greater than Max price (${max}).`);
+      this.error = "Minimum price cannot be greater than maximum price.";
+      return; // Stop processing
+    }
+    // --- END Validation ---
+
+    // Assign potentially cleaned values back (optional, ngModel might handle it)
+    this.minPrice = min;
+    this.maxPrice = max;
+
+    console.log(`Applying price filter: Min=${this.minPrice ?? 'N/A'}, Max=${this.maxPrice ?? 'N/A'}`);
+    this.loadProducts(); // Reload with current price values (which might be null now)
   }
 
   onSortChange(): void {

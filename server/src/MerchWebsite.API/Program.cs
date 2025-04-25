@@ -45,34 +45,16 @@ static async Task SeedDatabaseAsync(WebApplication app)
             {
                 // Inside SeedDatabaseAsync in Program.cs, within the product list creation
 
+                // Example snippet from SeedDatabaseAsync in Program.cs
                 var products = new List<Product>
-                {
-                    new Product {
-                        Name = "Awesome T-Shirt", /*...,*/ Category = "T-Shirts",
-                        Gender = "Unisex" // <<< Add Gender
-                    },
-                    new Product {
-                        Name = "Cool Hoodie", /*...,*/ Category = "Hoodies",
-                        Gender = "Unisex" // <<< Add Gender
-                    },
-                    new Product {
-                        Name = "Stylish Mug", /*...,*/ Category = "Accessories",
-                        Gender = null // <<< Example: No specific gender
-                    },
-                    new Product {
-                        Name = "Basic Black T-Shirt", /*...,*/ Category = "T-Shirts",
-                        Gender = "Men" // <<< Add Gender
-                    },
-                    // Add a "Women's" item for testing
-                    new Product {
-                        Name = "Fitted V-Neck T-Shirt",
-                        Description = "Soft, fitted v-neck.",
-                        Price = 18.99M,
-                        ImageUrl = "/assets/images/tshirt_vneck_women.jpg",
-                        Category = "T-Shirts",
-                        Gender = "Women" // <<< Add Gender
-                    }
-                };
+            {
+                new Product { Name = "Awesome T-Shirt", Price = 9.99M,/*...,*/ Category = "T-Shirts", Gender = "Unisex" },
+                new Product { Name = "Cool Hoodie", Price = 29.99M,/*...,*/ Category = "Hoodies", Gender = "Unisex" },
+                new Product { Name = "Stylish Mug", Price = 49.99M,/*...,*/ Category = "Accessories", Gender = null }, // Non-gendered
+                new Product { Name = "Basic Black T-Shirt", Price = 7.99M,/*...,*/ Category = "T-Shirts", Gender = "Men" }, // Men's
+                new Product { Name = "Fitted V-Neck T-Shirt", Price = 9.99M,/*...,*/ Category = "T-Shirts", Gender = "Women" }, // Women's
+                // Add more variations if needed
+            };
                 context.Products.AddRange(products);
                 await context.SaveChangesAsync();
                 Console.WriteLine("Seeded sample products with categories.");
