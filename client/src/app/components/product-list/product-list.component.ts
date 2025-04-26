@@ -2,7 +2,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { FormsModule } from '@angular/forms'; // <<< Import FormsModule for ngModel
+import { FormsModule } from '@angular/forms'; // Needed for ngModel
 import { ProductService } from '../../services/product.service';
 import { Product } from '../../models/product.model';
 import { CartService } from '../../services/cart.service';
@@ -11,30 +11,23 @@ import { AddCartItemDto } from '../../models/cart/add-cart-item.dto';
 @Component({
   selector: 'app-product-list',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule], // <<< Add FormsModule here
+  imports: [CommonModule, RouterLink, FormsModule], // Ensure FormsModule
   templateUrl: './product-list.component.html',
-  styleUrls: ['./product-list.component.css'] // Plural
+  styleUrls: ['./product-list.component.css']
 })
 export class ProductListComponent implements OnInit {
 
   // State Properties
   products: Product[] = [];
   categories: string[] = [];
-  isLoading = true; // For products
-  isLoadingCategories = true; // For categories
-  error: string | null = null; // For product loading errors
-  genderOptions: string[] = ['All', 'Men', 'Women', 'Unisex']; // Example options
-  selectedGender: string = 'All'; // Default selection
-  minPrice: number | null = null; // Input for min price
-  maxPrice: number | null = null;
-
-
-
-  // Filter/Sort State
-  selectedCategory: string = 'All'; // Default category filter
-  selectedSortBy: string = 'nameAsc'; // Default sort - matches backend default
-
-  // Sort Options for Dropdown
+  genderOptions: string[] = ['All', 'Men', 'Women', 'Unisex'];
+  priceRangeOptions = [
+    { value: 'all', label: 'All Prices' },
+    { value: '0-25', label: '$0 - $25' },
+    { value: '25-50', label: '$25 - $50' },
+    { value: '50-100', label: '$50 - $100' },
+    { value: '100+', label: '$100+' }
+  ];
   sortOptions = [
     { value: 'nameAsc', label: 'Name (A-Z)' },
     { value: 'nameDesc', label: 'Name (Z-A)' },
@@ -42,141 +35,122 @@ export class ProductListComponent implements OnInit {
     { value: 'priceDesc', label: 'Price (High to Low)' }
   ];
 
+  // Loading/Error State
+  isLoading = true;
+  isLoadingCategories = true;
+  error: string | null = null;
+
+  // --- Applied Filter/Sort State ---
+  // These values are used when calling loadProducts
+  selectedCategory: string = 'All';
+  selectedGender: string = 'All';
+  selectedPriceRange: string = 'all';
+  selectedSortBy: string = 'nameAsc';
+  // --- End Applied State ---
+
+  // --- Temporary State for Filter Panel ---
+  // These are bound to the dropdowns inside the panel
+  tempSelectedCategory: string = this.selectedCategory;
+  tempSelectedGender: string = this.selectedGender;
+  tempSelectedPriceRange: string = this.selectedPriceRange;
+  // --- End Temporary State ---
+
+  // --- Filter Panel Visibility ---
+  showFilters = false; // Initially hidden
+  // --- End Visibility ---
+
   // Injected Services
   private productService = inject(ProductService);
   private cartService = inject(CartService);
 
   ngOnInit(): void {
-    // Load initial data when component loads
-    this.loadProducts(); // Uses default category ('All') and sort ('nameAsc')
+    this.loadProducts(); // Initial load uses default applied filters
     this.loadCategories();
   }
 
-  // --- Data Loading Methods ---
-
-  // --- Modify loadProducts to include new filters ---
+  // --- Data Loading ---
+  // This method ALWAYS uses the 'selected...' properties (applied filters)
   loadProducts(): void {
     this.isLoading = true;
     this.error = null;
-    // Read current filter/sort state from component properties
-    const categoryToFetch = this.selectedCategory === 'All' ? undefined : this.selectedCategory;
-    const sortByToFetch = this.selectedSortBy;
-    const genderToFetch = this.selectedGender === 'All' ? undefined : this.selectedGender; // <<< Read gender
-    const minPriceToFetch = this.minPrice ?? undefined; // <<< Read min price (pass undefined if null)
-    const maxPriceToFetch = this.maxPrice ?? undefined; // <<< Read max price (pass undefined if null)
 
-    console.log(`ProductListComponent: Loading products. Category: ${this.selectedCategory}, SortBy: ${sortByToFetch}, Gender: ${this.selectedGender}, MinPrice: ${minPriceToFetch ?? 'N/A'}, MaxPrice: ${maxPriceToFetch ?? 'N/A'}`);
+    const categoryToFetch = this.selectedCategory === 'All' ? undefined : this.selectedCategory;
+    const genderToFetch = this.selectedGender === 'All' ? undefined : this.selectedGender;
+    const sortByToFetch = this.selectedSortBy;
+
+    // Parse Price Range from the *applied* selection
+    let minPriceToFetch: number | undefined = undefined;
+    let maxPriceToFetch: number | undefined = undefined;
+    if (this.selectedPriceRange && this.selectedPriceRange !== 'all') {
+      if (this.selectedPriceRange.includes('+')) {
+        minPriceToFetch = parseInt(this.selectedPriceRange.replace('+', ''), 10);
+      } else {
+        const parts = this.selectedPriceRange.split('-');
+        if (parts.length === 2) {
+          minPriceToFetch = parseInt(parts[0], 10);
+          maxPriceToFetch = parseInt(parts[1], 10);
+        }
+      }
+      if (isNaN(minPriceToFetch ?? NaN)) minPriceToFetch = undefined;
+      if (isNaN(maxPriceToFetch ?? NaN)) maxPriceToFetch = undefined;
+    }
+
+    console.log(`ProductListComponent: Loading products. Applied Filters -> Category: ${categoryToFetch ?? 'All'}, SortBy: ${sortByToFetch}, Gender: ${genderToFetch ?? 'All'}, MinPrice: ${minPriceToFetch ?? 'N/A'}, MaxPrice: ${maxPriceToFetch ?? 'N/A'}`);
 
     this.productService.getProducts(
-      categoryToFetch,
-      sortByToFetch,
-      genderToFetch,
-      minPriceToFetch,
-      maxPriceToFetch
+      categoryToFetch, sortByToFetch, genderToFetch, minPriceToFetch, maxPriceToFetch
     ).subscribe({
-      // ... next/error handlers ...
-      next: (data) => { this.products = data; this.isLoading = false; /*...*/ },
-      error: (err) => { this.error = err.message || 'Failed...'; this.isLoading = false; /*...*/ }
+      next: (data) => { this.products = data; this.isLoading = false; },
+      error: (err) => { this.error = err.message || 'Failed...'; this.isLoading = false; }
     });
   }
 
   loadCategories(): void {
     this.isLoadingCategories = true;
     this.productService.getCategories().subscribe({
-      next: (cats) => {
-        this.categories = cats; // Assumes getCategories returns ['All', ...]
-        this.isLoadingCategories = false;
-        console.log('Categories loaded:', cats);
-      },
-      error: (err) => {
-        console.error('Error fetching categories:', err);
-        // Handle error - maybe show a message that filtering is unavailable
-        this.isLoadingCategories = false;
-      }
+      next: (cats) => { this.categories = cats; this.isLoadingCategories = false; },
+      error: (err) => { console.error('Error fetching categories:', err); this.isLoadingCategories = false; }
     });
   }
 
   // --- Event Handlers ---
 
-  filterByCategory(category: string): void {
-    // Update selection only if it changed, then reload products
-    if (this.selectedCategory !== category) {
-      this.selectedCategory = category;
-      this.loadProducts();
+  toggleFilters(): void {
+    // When opening, reset temporary filters to match currently applied ones
+    if (!this.showFilters) {
+      this.tempSelectedCategory = this.selectedCategory;
+      this.tempSelectedGender = this.selectedGender;
+      this.tempSelectedPriceRange = this.selectedPriceRange;
     }
+    this.showFilters = !this.showFilters; // Toggle visibility
   }
 
-  filterByGender(gender: string): void {
-    if (this.selectedGender !== gender) {
-      this.selectedGender = gender;
-      this.loadProducts();
-    }
+  applyFiltersFromPanel(): void { // <<< Ensure this exact name is used
+    console.log('Applying filters from panel...');
+    // Copy temporary selections to applied selections
+    this.selectedCategory = this.tempSelectedCategory;
+    this.selectedGender = this.tempSelectedGender;
+    this.selectedPriceRange = this.tempSelectedPriceRange;
+
+    this.loadProducts(); // Reload products with the newly applied filters
+    this.showFilters = false; // Hide the panel
   }
 
-  // Inside ProductListComponent class
-
-  applyPriceFilter(): void {
-    // --- ADD Validation ---
-    this.error = null; // Clear previous errors specific to filtering
-    let min = this.minPrice;
-    let max = this.maxPrice;
-
-    // Treat empty input as null (no filter)
-    if (min === null || min === undefined || String(min).trim() === '') min = null;
-    if (max === null || max === undefined || String(max).trim() === '') max = null;
-
-    // Ensure values are numbers if not null
-    min = (min !== null) ? Number(min) : null;
-    max = (max !== null) ? Number(max) : null;
-
-    // Check for non-numeric input after conversion (isNaN) or negative values
-    if ((min !== null && (isNaN(min) || min < 0)) || (max !== null && (isNaN(max) || max < 0))) {
-      console.error("Price filter validation: Invalid number or negative value.");
-      this.error = "Please enter valid positive numbers for price range.";
-      // Optionally reset values:
-      // this.minPrice = null;
-      // this.maxPrice = null;
-      return; // Stop processing
-    }
-
-
-    // Check if min price is greater than max price (only if both are provided)
-    if (min !== null && max !== null && min > max) {
-      console.error(`Price filter validation: Min price (${min}) cannot be greater than Max price (${max}).`);
-      this.error = "Minimum price cannot be greater than maximum price.";
-      return; // Stop processing
-    }
-    // --- END Validation ---
-
-    // Assign potentially cleaned values back (optional, ngModel might handle it)
-    this.minPrice = min;
-    this.maxPrice = max;
-
-    console.log(`Applying price filter: Min=${this.minPrice ?? 'N/A'}, Max=${this.maxPrice ?? 'N/A'}`);
-    this.loadProducts(); // Reload with current price values (which might be null now)
+  // Optional: Cancel/Close button handler for the panel
+  cancelFilters(): void {
+    this.showFilters = false; // Just hide the panel, don't apply temp changes
   }
 
+  // Sort changes instantly reload products
   onSortChange(): void {
-    // The value in selectedSortBy should already be updated by [(ngModel)]
-    console.log(`[onSortChange] Sort option selected (ngModel value): ${this.selectedSortBy}`);
-    this.loadProducts(); // Explicitly reload products
+    console.log(`Sort option changed to: ${this.selectedSortBy}`);
+    this.loadProducts();
   }
-  // Note: Removed the onSortChange($event) method as ngModel handles the update.
-  // If you prefer using (change) instead of [(ngModel)], reinstate the onSortChange($event) method.
 
-
+  // --- Cart ---
   addToCart(product: Product): void {
     console.log(`Adding product ${product.id} (${product.name}) to cart`);
     const itemToAdd: AddCartItemDto = { productId: product.id, quantity: 1 };
-    this.cartService.addItem(itemToAdd).subscribe({
-      next: (updatedCart) => {
-        console.log('Product added successfully');
-        // Optionally provide better user feedback (e.g., toast message)
-      },
-      error: (err) => {
-        console.error(`Error adding ${product.name} to cart:`, err);
-        alert(`Failed to add ${product.name} to cart. ${err.message || ''}`);
-      }
-    });
+    this.cartService.addItem(itemToAdd).subscribe({ /* ... */ });
   }
 }
