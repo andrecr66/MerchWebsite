@@ -28,6 +28,6 @@ namespace MerchWebsite.API.Entities
         public string? Gender { get; set; } // Nullable string for gender
         // --- END Gender Property ---
 
-        // Size/Color would likely require a separate ProductVariant entity later
+        public double? AverageRating { get; set; } // Nullable double for rating
     }
 }

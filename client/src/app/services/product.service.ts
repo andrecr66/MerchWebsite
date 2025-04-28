@@ -81,16 +81,27 @@ export class ProductService {
     // Error Handler (remains the same)
     private handleError(error: HttpErrorResponse): Observable<never> {
         let errorMessage = 'An unknown error occurred fetching product data!';
-        if (error.error instanceof ErrorEvent) {
+
+        // --- SSR Safety Check ---
+        // Check if ErrorEvent is defined in the current environment before using instanceof
+        const isBrowser = typeof window !== 'undefined' && typeof ErrorEvent !== 'undefined';
+        if (isBrowser && error.error instanceof ErrorEvent) {
+            // --- End SSR Safety Check ---
+            // Client-side or network error occurred. Handle it accordingly.
             errorMessage = `Network Error: ${error.message}`;
         } else {
+            // Backend returned an unsuccessful response code.
+            // The response body may contain clues as to what went wrong.
             errorMessage = `Server returned code ${error.status}, error message is: ${error.message}`;
             if (error.status === 404) {
                 errorMessage = `Product data not found.`;
             }
         }
         console.error('ProductService Error:', error);
-        // Return user-friendly error message
-        return throwError(() => new Error(errorMessage));
+        // Log the specific backend error if available
+        if (!isBrowser || !(error.error instanceof ErrorEvent)) {
+            console.error('Backend error details:', error.error);
+        }
+        return throwError(() => new Error(errorMessage)); // Return user-friendly message
     }
 }

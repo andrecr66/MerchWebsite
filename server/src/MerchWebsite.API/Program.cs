@@ -47,14 +47,13 @@ static async Task SeedDatabaseAsync(WebApplication app)
 
                 // Example snippet from SeedDatabaseAsync in Program.cs
                 var products = new List<Product>
-            {
-                new Product { Name = "Awesome T-Shirt", Price = 9.99M,/*...,*/ Category = "T-Shirts", Gender = "Unisex" },
-                new Product { Name = "Cool Hoodie", Price = 29.99M,/*...,*/ Category = "Hoodies", Gender = "Unisex" },
-                new Product { Name = "Stylish Mug", Price = 49.99M,/*...,*/ Category = "Accessories", Gender = null }, // Non-gendered
-                new Product { Name = "Basic Black T-Shirt", Price = 7.99M,/*...,*/ Category = "T-Shirts", Gender = "Men" }, // Men's
-                new Product { Name = "Fitted V-Neck T-Shirt", Price = 9.99M,/*...,*/ Category = "T-Shirts", Gender = "Women" }, // Women's
-                // Add more variations if needed
-            };
+                {
+                    new Product { Name = "Awesome T-Shirt", /*...,*/ Category = "T-Shirts", Gender = "Unisex", AverageRating = 4.5 }, // <<< Add Rating
+                    new Product { Name = "Cool Hoodie", /*...,*/ Category = "Hoodies", Gender = "Unisex", AverageRating = 4.8 }, // <<< Add Rating
+                    new Product { Name = "Stylish Mug", /*...,*/ Category = "Accessories", Gender = null, AverageRating = 4.2 }, // <<< Add Rating
+                    new Product { Name = "Basic Black T-Shirt", /*...,*/ Category = "T-Shirts", Gender = "Men", AverageRating = 3.9 }, // <<< Add Rating
+                    new Product { Name = "Fitted V-Neck T-Shirt", /*...,*/ Category = "T-Shirts", Gender = "Women", AverageRating = null }, // <<< Example null rating
+                };
                 context.Products.AddRange(products);
                 await context.SaveChangesAsync();
                 Console.WriteLine("Seeded sample products with categories.");

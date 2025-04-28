@@ -74,10 +74,22 @@ namespace MerchWebsite.API.Controllers
                 "priceasc" => query.OrderBy(p => p.Price),
                 "pricedesc" => query.OrderByDescending(p => p.Price),
                 "namedesc" => query.OrderByDescending(p => p.Name),
+                // --- ADD Rating Sort ---
+                // Sort by rating descending, put products with no rating (null) last
+                "ratingdesc" => query.OrderByDescending(p => p.AverageRating ?? -1), // Treat nulls as lowest (-1)
+                // --- END Rating Sort ---
+                // Default ("nameasc", "relevance", null, or anything else)
                 _ => query.OrderBy(p => p.Name)
             };
-            Console.WriteLine($"API: Applying sort: {sortBy?.ToLowerInvariant() ?? "nameAsc (default)"}");
-            // --- End Sorting Logic ---
+            string appliedSort = sortBy?.ToLowerInvariant() switch
+            {
+                "priceasc" => "priceAsc",
+                "pricedesc" => "priceDesc",
+                "namedesc" => "nameDesc",
+                "ratingdesc" => "ratingDesc",
+                _ => "nameAsc (default)"
+            };
+            Console.WriteLine($"API: Applying sort: {appliedSort}");
 
             var products = await query.ToListAsync();
             Console.WriteLine($"API: Returning {products.Count} products.");

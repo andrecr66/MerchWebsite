@@ -1,4 +1,3 @@
-// client/src/app/models/product.model.ts
 export interface Product {
     id: number;
     name: string;
@@ -6,5 +5,6 @@ export interface Product {
     price: number;
     imageUrl?: string | null;
     category: string;
-    gender?: string | null; // <<< ADD Optional gender property
+    gender?: string | null;
+    averageRating?: number | null; // <<< ADD Optional rating
 }

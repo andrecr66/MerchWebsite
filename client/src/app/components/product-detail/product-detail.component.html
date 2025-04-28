@@ -1,120 +1,258 @@
 <!-- client/src/app/components/product-detail/product-detail.component.html -->
-<div class="product-detail-container">
+<div class="product-detail-page">
+
+    <!-- Back Link -->
+    <div class="back-link">
+        <a routerLink="/products">« Back to Products</a>
+    </div>
 
     <!-- Loading Indicator -->
     <div *ngIf="isLoading" class="loading">
         <p>Loading product details...</p>
-        <!-- Add a spinner animation here later -->
     </div>
 
     <!-- Error Message -->
-    <div *ngIf="error" class="error-message">
+    <div *ngIf="error && !isLoading" class="error-message">
         <p>Error: {{ error }}</p>
         <a routerLink="/products">Back to Products</a>
     </div>
 
-    <!-- Product Details (only show if product loaded and no error) -->
-    <div *ngIf="product && !isLoading && !error" class="product-content">
-        <h2>{{ product.name }}</h2>
+    <!-- Product Details Container (only show if product loaded and no error) -->
+    <div *ngIf="product && !isLoading && !error" class="product-detail-container">
 
-        <div class="product-image">
-            <!-- Display image (use placeholder if imageUrl is missing) -->
-            <img [src]="product.imageUrl || '/assets/images/placeholder.png'" alt="{{ product.name }}">
-            <!-- Add logic for multiple images later if needed -->
+        <!-- Left Column: Image Gallery (Simple for now) -->
+        <div class="product-gallery">
+            <img class="main-image" [src]="product.imageUrl || '/assets/images/placeholder.png'" [alt]="product.name">
+            <!-- Placeholder for thumbnails if multiple images existed -->
+            <!-- <div class="thumbnail-list"> -->
+            <!--   <img *ngFor="let img of product.imageUrls" [src]="img" alt="thumbnail"> -->
+            <!-- </div> -->
         </div>
 
-        <div class="product-info">
-            <p class="price">{{ product.price | currency }}</p>
+        <!-- Right Column: Info, Options, Actions -->
+        <div class="product-info-actions">
+            <h1 class="product-title">{{ product.name }}</h1>
 
-            <h3>Description</h3>
-            <p class="description">{{ product.description || 'No description available.' }}</p>
+            <!-- Placeholder for Rating/Reviews Link -->
+            <div class="product-rating-summary" *ngIf="product.averageRating"> <!-- Only show if rating exists -->
+                <span>{{ product.averageRating | number:'1.1-1' }} ★</span>
+                <!-- <a href="#reviews">(See Reviews)</a> -->
+            </div>
+            <div *ngIf="!product.averageRating">
+                <span>No ratings yet.</span>
+            </div>
 
-            <!-- Placeholder for Specs (Sizes, Colors, Availability) -->
-            <!--
-        <div *ngIf="product.sizes && product.sizes.length > 0">
-            <h4>Available Sizes:</h4>
-            <span>{{ product.sizes.join(', ') }}</span>
-        </div>
-        <div *ngIf="product.colors && product.colors.length > 0">
-            <h4>Available Colors:</h4>
-            <span>{{ product.colors.join(', ') }}</span>
-        </div>
-        <p *ngIf="product.availability">Availability: {{ product.availability }}</p>
-        -->
-            <!-- End Placeholder -->
+            <hr>
 
-            <!-- Add to Cart Button -->
-            <button (click)="addToCart()" class="add-to-cart-button">Add to Cart</button>
-        </div>
-    </div>
+            <p class="product-price">{{ product.price | currency }}</p>
 
-    <!-- Link to go back if product failed to load but wasn't a critical error -->
-    <div *ngIf="!product && !isLoading && !error">
-        <p>Product details could not be displayed.</p>
+            <!-- Basic Specs/Info Table -->
+            <table class="product-specs">
+                <tbody>
+                    <tr *ngIf="product.category">
+                        <th>Category:</th>
+                        <td>{{ product.category }}</td>
+                    </tr>
+                    <tr *ngIf="product.gender">
+                        <th>Gender:</th>
+                        <td>{{ product.gender }}</td>
+                    </tr>
+                    <!-- Add rows for Material, CareInstructions later -->
+                    <!-- <tr *ngIf="product.material"><th>Material:</th><td>{{ product.material }}</td></tr> -->
+                </tbody>
+            </table>
+
+            <!-- Add to Cart Section -->
+            <div class="add-to-cart-section">
+                <!-- Quantity selector can be added here later -->
+                <button class="add-to-cart-button" (click)="addToCart()">Add to Cart</button>
+            </div>
+
+            <hr>
+
+            <!-- Detailed Description -->
+            <div class="product-description">
+                <h3>Description</h3>
+                <p>{{ product.description || 'No description available.' }}</p>
+            </div>
+
+        </div> <!-- End Right Column -->
+
+    </div> <!-- End Product Details Container -->
+
+    <!-- Fallback if product is null after loading without error -->
+    <div *ngIf="!product && !isLoading && !error" class="error-message">
+        <p>Product details could not be loaded.</p>
         <a routerLink="/products">Back to Products</a>
     </div>
 
-</div>
+</div> <!-- End Page Container -->
 
-<!-- Basic Styling (can move to CSS file) -->
+
+<!-- Styles (Move to product-detail.component.css later) -->
 <style>
-    .product-detail-container {
-        padding: 1em;
+    .product-detail-page {
+        padding: 1.5em;
+        max-width: 1100px;
+        margin: auto;
+    }
+
+    .back-link {
+        margin-bottom: 1.5em;
+    }
+
+    .back-link a {
+        text-decoration: none;
+        color: #007bff;
+    }
+
+    .back-link a:hover {
+        text-decoration: underline;
     }
 
     .loading,
     .error-message {
         text-align: center;
-        padding: 2em;
+        padding: 3em;
+        color: #777;
     }
 
     .error-message {
         color: red;
     }
 
-    .product-content {
+    .product-detail-container {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 2em;
+        grid-template-columns: 1fr 1.5fr;
+        /* Adjust ratio as needed */
+        gap: 2.5em;
         align-items: start;
     }
 
-    .product-image img {
-        max-width: 100%;
+    .product-gallery .main-image {
+        width: 100%;
+        max-width: 450px;
+        /* Limit max image size */
         height: auto;
         border: 1px solid #eee;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+        display: block;
+        /* Prevent extra space below */
+        margin: auto;
+        /* Center if container is wider */
     }
 
-    .price {
-        font-size: 1.5em;
-        font-weight: bold;
+    /* Styles for thumbnails later */
+    /* .thumbnail-list { display: flex; gap: 0.5em; margin-top: 1em; } */
+    /* .thumbnail-list img { width: 60px; height: 60px; object-fit: cover; cursor: pointer; border: 1px solid #ccc; } */
+
+    .product-info-actions {
+        /* Right column content */
+    }
+
+    .product-title {
+        font-size: 1.8em;
+        margin-top: 0;
+        margin-bottom: 0.3em;
         color: #333;
+    }
+
+    .product-rating-summary {
+        font-size: 0.9em;
+        color: #666;
         margin-bottom: 1em;
     }
 
-    .description {
-        line-height: 1.6;
+    .product-rating-summary span {
+        color: #f89d2b;
+        font-weight: bold;
+        margin-right: 0.5em;
+    }
+
+    /* Star color */
+    .product-price {
+        font-size: 1.7em;
+        font-weight: bold;
+        color: #e44d26;
+        margin: 0.7em 0;
+    }
+
+    /* Price color */
+
+    .product-specs {
+        font-size: 0.9em;
+        margin-bottom: 1.5em;
+        border-collapse: collapse;
+        width: auto;
+    }
+
+    .product-specs th,
+    .product-specs td {
+        text-align: left;
+        padding: 0.4em 0.8em 0.4em 0;
+        vertical-align: top;
+    }
+
+    .product-specs th {
+        font-weight: 600;
+        color: #555;
+        padding-right: 1em;
+        white-space: nowrap;
+    }
+
+    .product-specs td {
+        color: #333;
+    }
+
+    .add-to-cart-section {
+        margin: 1.5em 0;
     }
 
     .add-to-cart-button {
-        margin-top: 1em;
-        padding: 0.8em 1.5em;
-        font-size: 1em;
+        padding: 0.8em 2em;
+        font-size: 1.1em;
         cursor: pointer;
         background-color: #28a745;
         color: white;
         border: none;
         border-radius: 4px;
+        font-weight: bold;
     }
 
     .add-to-cart-button:hover {
         background-color: #218838;
     }
 
-    /* Basic responsive behavior */
-    @media (max-width: 768px) {
-        .product-content {
+    .product-description {
+        margin-top: 1.5em;
+    }
+
+    .product-description h3 {
+        margin-bottom: 0.5em;
+        font-size: 1.1em;
+    }
+
+    .product-description p {
+        line-height: 1.6;
+        color: #555;
+    }
+
+    hr {
+        margin: 1.5em 0;
+        border: 0;
+        border-top: 1px solid #eee;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 800px) {
+        .product-detail-container {
             grid-template-columns: 1fr;
+        }
+
+        /* Stack columns */
+        .product-gallery .main-image {
+            max-width: 80%;
         }
     }
 </style>

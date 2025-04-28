@@ -89,6 +89,8 @@
                 <p class="product-category">{{ product.category }}{{ product.gender ? ' (' + product.gender + ')' : ''
                     }}</p>
                 <p class="product-price">{{ product.price | currency }}</p>
+                <p *ngIf="product.averageRating">Rating: {{ product.averageRating | number:'1.1-1' }}/5.0</p>
+                <!-- Example display -->
                 <button class="add-cart-button" (click)="addToCart(product)">Add to Cart</button>
             </div>
         </div>

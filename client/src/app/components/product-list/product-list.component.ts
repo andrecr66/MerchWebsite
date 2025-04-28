@@ -29,11 +29,13 @@ export class ProductListComponent implements OnInit {
   products: Product[] = [];
   categories: string[] = [];
   genderOptions: string[] = ['All', 'Men', 'Women', 'Unisex'];
-  sortOptions: SortOption[] = [ // Explicit type added
-    { value: 'nameAsc', label: 'Name (A-Z)' },
-    { value: 'nameDesc', label: 'Name (Z-A)' },
+  sortOptions: SortOption[] = [
+    { value: 'nameAsc', label: 'Relevance' }, // Map relevance to nameAsc (backend default)
     { value: 'priceAsc', label: 'Price (Low to High)' },
-    { value: 'priceDesc', label: 'Price (High to Low)' }
+    { value: 'priceDesc', label: 'Price (High to Low)' },
+    { value: 'ratingDesc', label: 'Average Rating' }, // Add rating sort
+    { value: 'nameAsc', label: 'Name (A-Z)' }, // Keep explicit name sort
+    { value: 'nameDesc', label: 'Name (Z-A)' }
   ];
 
   // Loading/Error State
