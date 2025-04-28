@@ -1,17 +1,25 @@
 // client/src/app/components/product-list/product-list.component.ts
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
-import { FormsModule } from '@angular/forms'; // Needed for ngModel
+import { RouterLink } from '@angular/router'; // Keep RouterLink for product detail links
+import { FormsModule } from '@angular/forms';
+import { NgxSliderModule, Options, LabelType } from '@angular-slider/ngx-slider';
 import { ProductService } from '../../services/product.service';
 import { Product } from '../../models/product.model';
 import { CartService } from '../../services/cart.service';
 import { AddCartItemDto } from '../../models/cart/add-cart-item.dto';
 
+// Interface for Sort Option Type Safety
+interface SortOption {
+  value: string;
+  label: string;
+}
+
 @Component({
   selector: 'app-product-list',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule], // Ensure FormsModule
+  // Updated imports
+  imports: [CommonModule, RouterLink, FormsModule, NgxSliderModule],
   templateUrl: './product-list.component.html',
   styleUrls: ['./product-list.component.css']
 })
@@ -21,14 +29,7 @@ export class ProductListComponent implements OnInit {
   products: Product[] = [];
   categories: string[] = [];
   genderOptions: string[] = ['All', 'Men', 'Women', 'Unisex'];
-  priceRangeOptions = [
-    { value: 'all', label: 'All Prices' },
-    { value: '0-25', label: '$0 - $25' },
-    { value: '25-50', label: '$25 - $50' },
-    { value: '50-100', label: '$50 - $100' },
-    { value: '100+', label: '$100+' }
-  ];
-  sortOptions = [
+  sortOptions: SortOption[] = [ // Explicit type added
     { value: 'nameAsc', label: 'Name (A-Z)' },
     { value: 'nameDesc', label: 'Name (Z-A)' },
     { value: 'priceAsc', label: 'Price (Low to High)' },
@@ -36,72 +37,80 @@ export class ProductListComponent implements OnInit {
   ];
 
   // Loading/Error State
-  isLoading = true;
+  isLoading = true; // Initialize as true for initial load
   isLoadingCategories = true;
-  error: string | null = null;
+  error: string | null = null; // Separate error state
 
-  // --- Applied Filter/Sort State ---
-  // These values are used when calling loadProducts
+  // Applied Filter/Sort State
   selectedCategory: string = 'All';
   selectedGender: string = 'All';
-  selectedPriceRange: string = 'all';
   selectedSortBy: string = 'nameAsc';
-  // --- End Applied State ---
+  readonly PRICE_MIN_BOUND = 0;
+  readonly PRICE_MAX_BOUND = 150; // Adjust as needed
+  currentMinPrice: number = this.PRICE_MIN_BOUND;
+  currentMaxPrice: number = this.PRICE_MAX_BOUND;
 
-  // --- Temporary State for Filter Panel ---
-  // These are bound to the dropdowns inside the panel
+  // Temporary State for Filter Panel
   tempSelectedCategory: string = this.selectedCategory;
   tempSelectedGender: string = this.selectedGender;
-  tempSelectedPriceRange: string = this.selectedPriceRange;
-  // --- End Temporary State ---
+  tempMinPrice: number = this.currentMinPrice;
+  tempMaxPrice: number = this.currentMaxPrice;
 
-  // --- Filter Panel Visibility ---
-  showFilters = false; // Initially hidden
-  // --- End Visibility ---
+  // Price Slider Configuration
+  priceSliderOptions: Options = {
+    floor: this.PRICE_MIN_BOUND,
+    ceil: this.PRICE_MAX_BOUND,
+    step: 1,
+    showTicks: false,
+    translate: (value: number, label: LabelType): string => {
+      switch (label) {
+        case LabelType.Low: return "$" + value;
+        case LabelType.High: return "$" + value;
+        default: return "$" + value;
+      }
+    }
+  };
+
+  // Filter Panel Visibility
+  showFilters = false;
 
   // Injected Services
   private productService = inject(ProductService);
   private cartService = inject(CartService);
 
   ngOnInit(): void {
-    this.loadProducts(); // Initial load uses default applied filters
+    this.loadProducts();
     this.loadCategories();
   }
 
   // --- Data Loading ---
-  // This method ALWAYS uses the 'selected...' properties (applied filters)
   loadProducts(): void {
-    this.isLoading = true;
-    this.error = null;
+    this.isLoading = true; // Set loading true INITIALLY
+    this.error = null;     // Clear previous errors INITIALLY
 
     const categoryToFetch = this.selectedCategory === 'All' ? undefined : this.selectedCategory;
     const genderToFetch = this.selectedGender === 'All' ? undefined : this.selectedGender;
     const sortByToFetch = this.selectedSortBy;
-
-    // Parse Price Range from the *applied* selection
-    let minPriceToFetch: number | undefined = undefined;
-    let maxPriceToFetch: number | undefined = undefined;
-    if (this.selectedPriceRange && this.selectedPriceRange !== 'all') {
-      if (this.selectedPriceRange.includes('+')) {
-        minPriceToFetch = parseInt(this.selectedPriceRange.replace('+', ''), 10);
-      } else {
-        const parts = this.selectedPriceRange.split('-');
-        if (parts.length === 2) {
-          minPriceToFetch = parseInt(parts[0], 10);
-          maxPriceToFetch = parseInt(parts[1], 10);
-        }
-      }
-      if (isNaN(minPriceToFetch ?? NaN)) minPriceToFetch = undefined;
-      if (isNaN(maxPriceToFetch ?? NaN)) maxPriceToFetch = undefined;
-    }
+    const minPriceToFetch = (this.currentMinPrice > this.PRICE_MIN_BOUND) ? this.currentMinPrice : undefined;
+    const maxPriceToFetch = (this.currentMaxPrice < this.PRICE_MAX_BOUND) ? this.currentMaxPrice : undefined;
 
     console.log(`ProductListComponent: Loading products. Applied Filters -> Category: ${categoryToFetch ?? 'All'}, SortBy: ${sortByToFetch}, Gender: ${genderToFetch ?? 'All'}, MinPrice: ${minPriceToFetch ?? 'N/A'}, MaxPrice: ${maxPriceToFetch ?? 'N/A'}`);
 
     this.productService.getProducts(
       categoryToFetch, sortByToFetch, genderToFetch, minPriceToFetch, maxPriceToFetch
     ).subscribe({
-      next: (data) => { this.products = data; this.isLoading = false; },
-      error: (err) => { this.error = err.message || 'Failed...'; this.isLoading = false; }
+      next: (data) => {
+        this.products = data;
+        this.isLoading = false; // <<< Set loading false on SUCCESS
+        this.error = null;     // <<< Ensure error is null on SUCCESS
+        console.log(`Products loaded:`, data);
+      },
+      error: (err) => {
+        console.error('Error fetching products:', err);
+        this.error = err.message || 'Failed to load products.'; // <<< Set error message on FAILURE
+        this.isLoading = false; // <<< Set loading false on FAILURE
+        this.products = [];    // <<< Clear products on error
+      }
     });
   }
 
@@ -114,34 +123,33 @@ export class ProductListComponent implements OnInit {
   }
 
   // --- Event Handlers ---
-
   toggleFilters(): void {
-    // When opening, reset temporary filters to match currently applied ones
     if (!this.showFilters) {
       this.tempSelectedCategory = this.selectedCategory;
       this.tempSelectedGender = this.selectedGender;
-      this.tempSelectedPriceRange = this.selectedPriceRange;
+      this.tempMinPrice = this.currentMinPrice;
+      this.tempMaxPrice = this.currentMaxPrice;
     }
-    this.showFilters = !this.showFilters; // Toggle visibility
+    this.showFilters = !this.showFilters;
   }
 
-  applyFiltersFromPanel(): void { // <<< Ensure this exact name is used
-    console.log('Applying filters from panel...');
-    // Copy temporary selections to applied selections
+  applyAllFilters(): void {
+    console.log('Applying all selected filters...');
     this.selectedCategory = this.tempSelectedCategory;
     this.selectedGender = this.tempSelectedGender;
-    this.selectedPriceRange = this.tempSelectedPriceRange;
-
-    this.loadProducts(); // Reload products with the newly applied filters
-    this.showFilters = false; // Hide the panel
+    this.currentMinPrice = this.tempMinPrice;
+    this.currentMaxPrice = this.tempMaxPrice;
+    this.loadProducts();
+    this.showFilters = false;
   }
 
-  // Optional: Cancel/Close button handler for the panel
   cancelFilters(): void {
-    this.showFilters = false; // Just hide the panel, don't apply temp changes
+    // Reset temp slider values back to applied state before closing
+    this.tempMinPrice = this.currentMinPrice;
+    this.tempMaxPrice = this.currentMaxPrice;
+    this.showFilters = false;
   }
 
-  // Sort changes instantly reload products
   onSortChange(): void {
     console.log(`Sort option changed to: ${this.selectedSortBy}`);
     this.loadProducts();
@@ -151,6 +159,9 @@ export class ProductListComponent implements OnInit {
   addToCart(product: Product): void {
     console.log(`Adding product ${product.id} (${product.name}) to cart`);
     const itemToAdd: AddCartItemDto = { productId: product.id, quantity: 1 };
-    this.cartService.addItem(itemToAdd).subscribe({ /* ... */ });
+    this.cartService.addItem(itemToAdd).subscribe({
+      next: (updatedCart) => { console.log('Product added successfully'); },
+      error: (err) => { alert(`Failed to add ${product.name} to cart. ${err.message || ''}`); }
+    });
   }
 }

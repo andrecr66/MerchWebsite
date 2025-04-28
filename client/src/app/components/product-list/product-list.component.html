@@ -4,13 +4,10 @@
 
     <!-- Main Controls Row: Filter Toggle + Sorting -->
     <section class="main-controls">
-        <!-- Filters Toggle Button -->
         <button class="filter-toggle-button" (click)="toggleFilters()" [attr.aria-expanded]="showFilters">
             Filters {{ showFilters ? '(- Hide)' : '(+ Show)' }}
         </button>
-
-        <!-- Sorting Dropdown (Remains Visible) -->
-        <div class="sort-options filter-group"> <!-- Re-use filter-group class -->
+        <div class="sort-options filter-group">
             <label for="sort">Sort by:</label>
             <select id="sort" [(ngModel)]="selectedSortBy" (change)="onSortChange()">
                 <option *ngFor="let option of sortOptions" [value]="option.value">
@@ -32,9 +29,7 @@
                 <label for="filter-category">Category:</label>
                 <select id="filter-category" [(ngModel)]="tempSelectedCategory">
                     <option *ngIf="isLoadingCategories" value="" disabled>Loading...</option>
-                    <option *ngFor="let category of categories" [value]="category">
-                        {{ category }}
-                    </option>
+                    <option *ngFor="let category of categories" [value]="category">{{ category }}</option>
                 </select>
             </div>
 
@@ -42,33 +37,27 @@
             <div class="filter-group">
                 <label for="filter-gender">Gender:</label>
                 <select id="filter-gender" [(ngModel)]="tempSelectedGender">
-                    <option *ngFor="let gender of genderOptions" [value]="gender">
-                        {{ gender }}
-                    </option>
+                    <option *ngFor="let gender of genderOptions" [value]="gender">{{ gender }}</option>
                 </select>
             </div>
 
-            <!-- Price Range Filter Dropdown -->
-            <div class="filter-group">
-                <label for="filter-price">Price Range:</label>
-                <select id="filter-price" [(ngModel)]="tempSelectedPriceRange">
-                    <option *ngFor="let option of priceRangeOptions" [value]="option.value">
-                        {{ option.label }}
-                    </option>
-                </select>
+            <!-- Price Range Slider -->
+            <div class="filter-group price-slider-group">
+                <label>Price Range:</label>
+                <ngx-slider [(value)]="tempMinPrice" [(highValue)]="tempMaxPrice"
+                    [options]="priceSliderOptions"></ngx-slider>
             </div>
+
         </div> <!-- End filter-controls-grid -->
 
         <!-- Action Buttons for Panel -->
         <div class="panel-actions">
-            <!-- Display general errors -->
+            <!-- Display general errors (e.g., from loading) inside panel? Or outside? -->
             <div *ngIf="error" class="filter-error">
                 <p>Error: {{ error }}</p>
             </div>
-            <!-- Cancel Button -->
             <button class="cancel-button" type="button" (click)="cancelFilters()">Cancel</button>
-            <!-- Apply Filters Button -->
-            <button class="apply-filters-button" type="button" (click)="applyFiltersFromPanel()">Apply Filters</button>
+            <button class="apply-filters-button" type="button" (click)="applyAllFilters()">Apply Filters</button>
         </div>
 
     </section>
@@ -77,20 +66,24 @@
 
     <hr class="separator">
 
-    <!-- Product Grid Section -->
-    <div *ngIf="isLoading" class="loading-message">
+    <!-- Loading Indicator for Products -->
+    <div *ngIf="isLoading" class="loading-message"> <!-- Use isLoading flag -->
         <p>Loading products...</p>
     </div>
+
+    <!-- Product Grid Section -->
+    <!-- Display grid only when NOT loading AND there is NO error -->
     <section class="product-grid" *ngIf="!isLoading && !error">
+        <!-- Check if products array has items AFTER loading and no error -->
         <div *ngIf="products.length > 0; else noProducts">
             <!-- Product Card Loop -->
             <div class="product-card" *ngFor="let product of products">
                 <div class="product-image-placeholder">
-                    <!-- Image would go here: -->
                     <!-- <img [src]="product.imageUrl || '/assets/images/placeholder.png'" alt="{{ product.name }}"> -->
                     <span>Image Placeholder</span>
                 </div>
                 <h3>
+                    <!-- Ensure RouterLink is imported in TS file -->
                     <a [routerLink]="['/products', product.id]">{{ product.name }}</a>
                 </h3>
                 <p class="product-category">{{ product.category }}{{ product.gender ? ' (' + product.gender + ')' : ''
@@ -109,6 +102,7 @@
 
 <!-- Styles -->
 <style>
+    /* ... All styles from previous example ... */
     .product-page-container {
         padding: 1em;
         max-width: 1200px;
@@ -200,6 +194,15 @@
         font-size: 0.9em;
     }
 
+    .price-slider-group {
+        grid-column: span 2;
+        padding: 0 0.5em;
+    }
+
+    .price-slider-group label {
+        margin-bottom: 2.5em;
+    }
+
     .panel-actions {
         margin-top: 1.5em;
         padding-top: 1em;
@@ -244,9 +247,7 @@
         background-color: #e0e0e0;
     }
 
-    .sort-options {
-        /* Sort dropdown specific styles */
-    }
+    .sort-options {}
 
     .sort-options label {
         font-weight: bold;
@@ -351,5 +352,40 @@
 
     .add-cart-button:hover {
         background-color: #218838;
+    }
+
+    /* Basic Slider Styles */
+    ngx-slider {
+        width: 95%;
+        margin: 1.5em auto 0.5em auto;
+        display: block;
+    }
+
+    :host ::ng-deep .ngx-slider .ngx-slider-pointer {
+        width: 16px !important;
+        height: 16px !important;
+        top: -6px !important;
+        background-color: #007bff !important;
+        border-radius: 50%;
+    }
+
+    :host ::ng-deep .ngx-slider .ngx-slider-bar {
+        background: #d8e0f3 !important;
+        height: 4px !important;
+    }
+
+    :host ::ng-deep .ngx-slider .ngx-slider-selection {
+        background: #007bff !important;
+    }
+
+    :host ::ng-deep .ngx-slider .ngx-slider-tick {
+        background: #b9c5e8 !important;
+        width: 1px !important;
+        height: 8px !important;
+        top: -2px !important;
+    }
+
+    :host ::ng-deep .ngx-slider .ngx-slider-bubble {
+        font-size: 0.85em;
     }
 </style>
