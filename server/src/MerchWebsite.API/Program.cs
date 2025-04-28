@@ -46,14 +46,66 @@ static async Task SeedDatabaseAsync(WebApplication app)
                 // Inside SeedDatabaseAsync in Program.cs, within the product list creation
 
                 // Example snippet from SeedDatabaseAsync in Program.cs
+                // Inside SeedDatabaseAsync in Program.cs
+                // Corrected example snippet within SeedDatabaseAsync
                 var products = new List<Product>
-                {
-                    new Product { Name = "Awesome T-Shirt", /*...,*/ Category = "T-Shirts", Gender = "Unisex", AverageRating = 4.5 }, // <<< Add Rating
-                    new Product { Name = "Cool Hoodie", /*...,*/ Category = "Hoodies", Gender = "Unisex", AverageRating = 4.8 }, // <<< Add Rating
-                    new Product { Name = "Stylish Mug", /*...,*/ Category = "Accessories", Gender = null, AverageRating = 4.2 }, // <<< Add Rating
-                    new Product { Name = "Basic Black T-Shirt", /*...,*/ Category = "T-Shirts", Gender = "Men", AverageRating = 3.9 }, // <<< Add Rating
-                    new Product { Name = "Fitted V-Neck T-Shirt", /*...,*/ Category = "T-Shirts", Gender = "Women", AverageRating = null }, // <<< Example null rating
-                };
+            {
+                new Product {
+                    Id = 0, // Let DB generate ID
+                    Name = "Awesome T-Shirt",
+                    Description = "High-quality cotton t-shirt with awesome design.", // <<< Ensure present
+                    Price = 19.99M, // <<< Ensure present and non-zero with M
+                    ImageUrl = "/assets/images/tshirt_awesome.jpg", // <<< Ensure present
+                    Category = "T-Shirts", // <<< Ensure present
+                    Gender = "Unisex", // <<< Ensure present
+                    AverageRating = 4.5,
+                    NumberOfReviews = 120
+                },
+                new Product {
+                    Id = 0,
+                    Name = "Cool Hoodie",
+                    Description = "Warm and comfortable hoodie.", // <<< Ensure present
+                    Price = 49.99M, // <<< Ensure present and non-zero with M
+                    ImageUrl = "/assets/images/hoodie_cool.jpg", // <<< Ensure present
+                    Category = "Hoodies", // <<< Ensure present
+                    Gender = "Unisex", // <<< Ensure present
+                    AverageRating = 4.8,
+                    NumberOfReviews = 85
+                },
+                new Product {
+                    Id = 0,
+                    Name = "Stylish Mug",
+                    Description = "Ceramic mug, perfect for your morning coffee.", // <<< Ensure present
+                    Price = 9.99M, // <<< Ensure present and non-zero with M
+                    ImageUrl = "/assets/images/mug_stylish.jpg", // <<< Ensure present
+                    Category = "Accessories", // <<< Ensure present
+                    Gender = null, // <<< Gender can be null if intended
+                    AverageRating = 4.2,
+                    NumberOfReviews = 55
+                },
+                new Product {
+                    Id = 0,
+                    Name = "Basic Black T-Shirt",
+                    Description = "Simple, essential black t-shirt.", // <<< Ensure present
+                    Price = 14.99M, // <<< Ensure present and non-zero with M
+                    ImageUrl = "/assets/images/tshirt_black.jpg", // <<< Ensure present
+                    Category = "T-Shirts", // <<< Ensure present
+                    Gender = "Men", // <<< Ensure present
+                    AverageRating = 3.9,
+                    NumberOfReviews = 210
+                },
+                new Product {
+                    Id = 0,
+                    Name = "Fitted V-Neck T-Shirt",
+                    Description = "Soft, fitted v-neck.", // <<< Ensure present
+                    Price = 18.99M, // <<< Ensure present and non-zero with M
+                    ImageUrl = "/assets/images/tshirt_vneck_women.jpg", // <<< Ensure present
+                    Category = "T-Shirts", // <<< Ensure present
+                    Gender = "Women", // <<< Ensure present
+                    AverageRating = null, // Rating can be null
+                    NumberOfReviews = 0
+                },
+            };
                 context.Products.AddRange(products);
                 await context.SaveChangesAsync();
                 Console.WriteLine("Seeded sample products with categories.");

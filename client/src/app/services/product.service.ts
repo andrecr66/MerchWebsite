@@ -3,6 +3,10 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'; // Ensure HttpParams is imported
 import { Observable, catchError, throwError, of } from 'rxjs';
 import { Product } from '../models/product.model'; // Ensure Product model includes 'gender?'
+// --- ADD Review Model/DTO Imports ---
+import { Review } from '../models/review/review.model';
+import { CreateReviewDto } from '../models/review/create-review.dto';
+// --- END Review Model/DTO Imports ---
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -76,6 +80,37 @@ export class ProductService {
         const hardcodedCategories = ['All', 'T-Shirts', 'Hoodies', 'Accessories']; // Match seeding
         return of(hardcodedCategories);
     }
+
+    // --- ADD Review Methods ---
+
+    /**
+     * Fetches all reviews for a specific product.
+     * NOTE: Backend endpoint /api/products/{id}/reviews is not yet implemented.
+     *       This will return an empty array or error until backend is added.
+     */
+    getReviewsForProduct(productId: number): Observable<Review[]> {
+        const url = `${this.apiUrl}/${productId}/reviews`;
+        console.log(`ProductService: Fetching reviews for product ID ${productId} from ${url}`);
+        // For now, return empty array until backend is ready
+        // return of([]);
+        // Once backend is ready, use:
+        return this.http.get<Review[]>(url).pipe(
+            catchError(this.handleError)
+        );
+    }
+
+    /**
+     * Submits a new review for a product.
+     * Requires user to be authenticated (handled by interceptor).
+     */
+    submitReview(productId: number, reviewData: CreateReviewDto): Observable<any> { // Backend returns 200/201, no specific body needed typically
+        const url = `${this.apiUrl}/${productId}/reviews`;
+        console.log(`ProductService: Submitting review for product ID ${productId}`, reviewData);
+        return this.http.post(url, reviewData).pipe( // POST request, no specific response type needed
+            catchError(this.handleError)
+        );
+    }
+    // --- END Review Methods ---
 
 
     // Error Handler (remains the same)

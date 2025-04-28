@@ -20,6 +20,10 @@ namespace MerchWebsite.API.Data
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
         // --- END ADDED DbSets ---
+        // Inside AppDbContext class
+        // ... other DbSets ...
+        public DbSet<Review> Reviews { get; set; } // <<< ADD THIS DbSet
+                                                   // ... OnModelCreating ...
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

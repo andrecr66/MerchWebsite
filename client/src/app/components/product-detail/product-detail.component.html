@@ -17,242 +17,318 @@
         <a routerLink="/products">Back to Products</a>
     </div>
 
-    <!-- Product Details Container (only show if product loaded and no error) -->
+    <!-- Product Details Container -->
     <div *ngIf="product && !isLoading && !error" class="product-detail-container">
 
-        <!-- Left Column: Image Gallery (Simple for now) -->
+        <!-- Left Column: Image Gallery -->
         <div class="product-gallery">
             <img class="main-image" [src]="product.imageUrl || '/assets/images/placeholder.png'" [alt]="product.name">
-            <!-- Placeholder for thumbnails if multiple images existed -->
-            <!-- <div class="thumbnail-list"> -->
-            <!--   <img *ngFor="let img of product.imageUrls" [src]="img" alt="thumbnail"> -->
-            <!-- </div> -->
         </div>
 
         <!-- Right Column: Info, Options, Actions -->
         <div class="product-info-actions">
             <h1 class="product-title">{{ product.name }}</h1>
 
-            <!-- Placeholder for Rating/Reviews Link -->
-            <div class="product-rating-summary" *ngIf="product.averageRating"> <!-- Only show if rating exists -->
-                <span>{{ product.averageRating | number:'1.1-1' }} ★</span>
-                <!-- <a href="#reviews">(See Reviews)</a> -->
+            <!-- Rating/Reviews Summary -->
+            <div class="product-rating-summary">
+                <ng-container *ngIf="product.averageRating && product.averageRating > 0">
+                    <span class="stars" [title]="(product.averageRating | number:'1.1-1') + ' stars'">
+                        <span *ngFor="let i of [1,2,3,4,5]" class="star">{{ i <= product.averageRating ? '★' : '☆'
+                                }}</span>
+                        </span>
+                        <span class="rating-value">{{ product.averageRating | number:'1.1-1' }}</span>
+                        <a [routerLink]="[]" fragment="reviews" class="review-count">({{ product.numberOfReviews || 0 }}
+                            Reviews)</a>
+                </ng-container>
+                <ng-container *ngIf="!product.averageRating || product.averageRating <= 0">
+                    <span class="no-reviews">No ratings yet.</span>
+                    <a *ngIf="authService.isLoggedIn()" (click)="showReviewForm = true; scrollToReviews($event)"
+                        href="javascript:void(0)" class="review-count">(Be the first to review!)</a>
+                </ng-container>
             </div>
-            <div *ngIf="!product.averageRating">
-                <span>No ratings yet.</span>
-            </div>
+            <!-- End Rating Summary -->
 
             <hr>
-
             <p class="product-price">{{ product.price | currency }}</p>
-
             <!-- Basic Specs/Info Table -->
             <table class="product-specs">
                 <tbody>
-                    <tr *ngIf="product.category">
+                    <tr *ngIf="product.category"> <!-- Around Line 50 -->
                         <th>Category:</th>
-                        <td>{{ product.category }}</td>
+                        <td>{{ product.category }}</td> <!-- Around Line 53 -->
                     </tr>
                     <tr *ngIf="product.gender">
                         <th>Gender:</th>
                         <td>{{ product.gender }}</td>
                     </tr>
-                    <!-- Add rows for Material, CareInstructions later -->
-                    <!-- <tr *ngIf="product.material"><th>Material:</th><td>{{ product.material }}</td></tr> -->
+                    <!-- Add Material, CareInstructions later -->
                 </tbody>
             </table>
-
-            <!-- Add to Cart Section -->
             <div class="add-to-cart-section">
-                <!-- Quantity selector can be added here later -->
                 <button class="add-to-cart-button" (click)="addToCart()">Add to Cart</button>
             </div>
-
             <hr>
-
-            <!-- Detailed Description -->
-            <div class="product-description">
-                <h3>Description</h3>
-                <p>{{ product.description || 'No description available.' }}</p>
-            </div>
+            <div class="product-description"> /* ... Description ... */ </div>
 
         </div> <!-- End Right Column -->
 
     </div> <!-- End Product Details Container -->
 
-    <!-- Fallback if product is null after loading without error -->
-    <div *ngIf="!product && !isLoading && !error" class="error-message">
-        <p>Product details could not be loaded.</p>
-        <a routerLink="/products">Back to Products</a>
-    </div>
+
+    <!-- *** Reviews Section (Display AND Form) *** -->
+    <section id="reviews" class="reviews-section" *ngIf="product && !isLoading && !error">
+        <h3>Customer Reviews</h3>
+
+        <!-- Write Review Button (Show only if logged in) -->
+        <div class="review-actions" *ngIf="authService.isLoggedIn()">
+            <button class="write-review-button" (click)="showReviewForm = !showReviewForm; scrollToReviews($event)">
+                {{ showReviewForm ? 'Cancel Review' : 'Write Your Review' }}
+            </button>
+        </div>
+        <div class="review-actions" *ngIf="!authService.isLoggedIn()">
+            <p><i><a routerLink="/login" [queryParams]="{ returnUrl: router.url }">Log in</a> to write a review.</i></p>
+        </div>
+
+        <!-- *** Review Submission Form (Conditional) *** -->
+        <form class="review-form" *ngIf="showReviewForm" [formGroup]="reviewForm" (ngSubmit)="submitReview()">
+            <h4>Your Review</h4>
+            <!-- Rating Input -->
+            <div class="form-group">
+                <label for="rating">Overall Rating:*</label>
+                <select id="rating" formControlName="rating">
+                    <option [ngValue]="null" disabled>Select Rating</option>
+                    <option [ngValue]="5">5 ★★★★★ (Excellent)</option>
+                    <option [ngValue]="4">4 ★★★★☆ (Good)</option>
+                    <option [ngValue]="3">3 ★★★☆☆ (Average)</option>
+                    <option [ngValue]="2">2 ★★☆☆☆ (Fair)</option>
+                    <option [ngValue]="1">1 ★☆☆☆☆ (Poor)</option>
+                </select>
+                <div *ngIf="rating?.invalid && (rating?.dirty || rating?.touched)" class="error">
+                    Please select a rating (1-5).
+                </div>
+            </div>
+            <!-- Comment Input -->
+            <div class="form-group">
+                <label for="comment">Your Comment (Optional):</label>
+                <textarea id="comment" rows="4" formControlName="comment"
+                    placeholder="Tell others what you thought..."></textarea>
+                <div *ngIf="comment?.invalid && comment?.errors?.['maxlength']" class="error">
+                    Comment cannot exceed 1000 characters.
+                </div>
+            </div>
+            <!-- Submission Error -->
+            <div *ngIf="reviewSubmitError" class="error submit-error">
+                {{ reviewSubmitError }}
+            </div>
+            <!-- Submit Button -->
+            <button type="submit" class="submit-review-button" [disabled]="reviewForm.invalid || isSubmittingReview">
+                {{ isSubmittingReview ? 'Submitting...' : 'Submit Review' }}
+            </button>
+            <button type="button" class="cancel-review-button" (click)="showReviewForm = false">Cancel</button>
+            <!-- Added Cancel -->
+        </form>
+        <!-- *** End Review Submission Form *** -->
+
+
+        <!-- *** Review List Display *** -->
+        <div class="review-list">
+            <h4>Reviews</h4>
+            <div *ngIf="isLoadingReviews" class="loading-message">Loading reviews...</div>
+            <div *ngIf="reviewsError && !isLoadingReviews" class="error-message">
+                Error loading reviews: {{ reviewsError }}
+            </div>
+            <div *ngIf="!isLoadingReviews && !reviewsError">
+                <div *ngIf="reviews.length > 0; else noReviewsYet">
+                    <!-- Loop through fetched reviews -->
+                    <div class="review-item" *ngFor="let review of reviews">
+                        <div class="review-rating">
+                            <span class="stars">
+                                <span *ngFor="let i of [1,2,3,4,5]" class="star">
+                                    {{ i <= review.rating ? '★' : '☆' }} </span>
+                                </span>
+                        </div>
+                        <p class="review-comment">{{ review.comment || 'No comment provided.' }}</p>
+                        <p class="review-meta">
+                            By {{ review.userName || 'User ' + review.userId.substring(0, 6) }}
+                            on {{ review.reviewDate | date:'mediumDate' }}
+                        </p>
+                    </div>
+                </div>
+                <ng-template #noReviewsYet>
+                    <p><i>There are no reviews for this product yet.</i></p>
+                </ng-template>
+            </div>
+        </div>
+        <!-- *** End Review List Display *** -->
+
+    </section>
+    <!-- End Reviews Section -->
+
+    <!-- Fallback if product is null -->
+    <!-- ... -->
 
 </div> <!-- End Page Container -->
 
 
-<!-- Styles (Move to product-detail.component.css later) -->
+<!-- Styles -->
 <style>
-    .product-detail-page {
-        padding: 1.5em;
-        max-width: 1100px;
-        margin: auto;
-    }
-
-    .back-link {
-        margin-bottom: 1.5em;
-    }
-
-    .back-link a {
-        text-decoration: none;
-        color: #007bff;
-    }
-
-    .back-link a:hover {
-        text-decoration: underline;
-    }
-
-    .loading,
-    .error-message {
-        text-align: center;
-        padding: 3em;
-        color: #777;
-    }
-
-    .error-message {
-        color: red;
-    }
-
-    .product-detail-container {
-        display: grid;
-        grid-template-columns: 1fr 1.5fr;
-        /* Adjust ratio as needed */
-        gap: 2.5em;
-        align-items: start;
-    }
-
-    .product-gallery .main-image {
-        width: 100%;
-        max-width: 450px;
-        /* Limit max image size */
-        height: auto;
-        border: 1px solid #eee;
-        border-radius: 5px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
-        display: block;
-        /* Prevent extra space below */
-        margin: auto;
-        /* Center if container is wider */
-    }
-
-    /* Styles for thumbnails later */
-    /* .thumbnail-list { display: flex; gap: 0.5em; margin-top: 1em; } */
-    /* .thumbnail-list img { width: 60px; height: 60px; object-fit: cover; cursor: pointer; border: 1px solid #ccc; } */
-
-    .product-info-actions {
-        /* Right column content */
-    }
-
-    .product-title {
-        font-size: 1.8em;
-        margin-top: 0;
-        margin-bottom: 0.3em;
-        color: #333;
-    }
-
-    .product-rating-summary {
-        font-size: 0.9em;
-        color: #666;
-        margin-bottom: 1em;
-    }
-
-    .product-rating-summary span {
-        color: #f89d2b;
-        font-weight: bold;
-        margin-right: 0.5em;
-    }
-
-    /* Star color */
-    .product-price {
-        font-size: 1.7em;
-        font-weight: bold;
-        color: #e44d26;
-        margin: 0.7em 0;
-    }
-
-    /* Price color */
-
-    .product-specs {
-        font-size: 0.9em;
-        margin-bottom: 1.5em;
-        border-collapse: collapse;
-        width: auto;
-    }
-
-    .product-specs th,
-    .product-specs td {
-        text-align: left;
-        padding: 0.4em 0.8em 0.4em 0;
-        vertical-align: top;
-    }
-
-    .product-specs th {
-        font-weight: 600;
-        color: #555;
-        padding-right: 1em;
-        white-space: nowrap;
-    }
-
-    .product-specs td {
-        color: #333;
-    }
-
-    .add-to-cart-section {
-        margin: 1.5em 0;
-    }
-
-    .add-to-cart-button {
-        padding: 0.8em 2em;
-        font-size: 1.1em;
-        cursor: pointer;
-        background-color: #28a745;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        font-weight: bold;
-    }
-
-    .add-to-cart-button:hover {
-        background-color: #218838;
-    }
-
-    .product-description {
-        margin-top: 1.5em;
-    }
-
-    .product-description h3 {
-        margin-bottom: 0.5em;
-        font-size: 1.1em;
-    }
-
-    .product-description p {
-        line-height: 1.6;
-        color: #555;
-    }
-
-    hr {
-        margin: 1.5em 0;
-        border: 0;
+    /* ... Keep existing styles ... */
+    /* Add/Update styles for review form and list */
+    .reviews-section {
+        margin-top: 2.5em;
+        padding-top: 1.5em;
         border-top: 1px solid #eee;
     }
 
-    /* Responsive adjustments */
-    @media (max-width: 800px) {
-        .product-detail-container {
-            grid-template-columns: 1fr;
-        }
+    .reviews-section h3 {
+        margin-bottom: 1em;
+        font-size: 1.4em;
+        color: #333;
+    }
 
-        /* Stack columns */
-        .product-gallery .main-image {
-            max-width: 80%;
-        }
+    .reviews-section h4 {
+        margin-top: 1.5em;
+        margin-bottom: 1em;
+        font-size: 1.2em;
+        color: #444;
+    }
+
+    .review-actions {
+        margin-bottom: 1.5em;
+    }
+
+    .write-review-button {
+        padding: 0.6em 1em;
+        background-color: #5a6268;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9em;
+    }
+
+    .write-review-button:hover {
+        background-color: #474d52;
+    }
+
+    .review-form {
+        border: 1px solid #ddd;
+        padding: 1.5em;
+        border-radius: 5px;
+        background-color: #fdfdfd;
+        margin-bottom: 2em;
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    .review-form .form-group {
+        margin-bottom: 1.2em;
+    }
+
+    .review-form label {
+        display: block;
+        margin-bottom: 0.4em;
+        font-weight: bold;
+        font-size: 0.9em;
+    }
+
+    .review-form select,
+    .review-form textarea {
+        width: 100%;
+        max-width: 500px;
+        /* Limit width */
+        padding: 0.6em;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 0.95em;
+        box-sizing: border-box;
+    }
+
+    .review-form textarea {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    .submit-review-button {
+        padding: 0.7em 1.5em;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 1em;
+        margin-right: 0.5em;
+    }
+
+    .submit-review-button:hover {
+        background-color: #0056b3;
+    }
+
+    .submit-review-button[disabled] {
+        background-color: #cccccc;
+        cursor: not-allowed;
+    }
+
+    .cancel-review-button {
+        padding: 0.7em 1.5em;
+        background-color: #f1f1f1;
+        color: #333;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 1em;
+    }
+
+    .cancel-review-button:hover {
+        background-color: #e0e0e0;
+    }
+
+    .error {
+        color: red;
+        font-size: 0.85em;
+        margin-top: 0.3em;
+    }
+
+    .submit-error {
+        margin-top: 1em;
+        font-weight: bold;
+    }
+
+    .review-list {
+        margin-top: 1.5em;
+    }
+
+    .review-list h4 {
+        border-bottom: 1px solid #eee;
+        padding-bottom: 0.5em;
+        margin-bottom: 1em;
+    }
+
+    .review-item {
+        border-bottom: 1px solid #eee;
+        padding: 1.5em 0;
+    }
+
+    .review-item:last-child {
+        border-bottom: none;
+    }
+
+    .review-rating .stars {
+        color: #f8a02b;
+        font-size: 1.1em;
+    }
+
+    .review-comment {
+        margin: 0.5em 0;
+        line-height: 1.6;
+        white-space: pre-wrap;
+        /* Preserve whitespace/newlines */
+    }
+
+    .review-meta {
+        font-size: 0.85em;
+        color: #777;
+        font-style: italic;
+        margin-top: 0.8em;
     }
 </style>

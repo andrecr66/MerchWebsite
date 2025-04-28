@@ -28,6 +28,10 @@ namespace MerchWebsite.API.Entities
         public string? Gender { get; set; } // Nullable string for gender
         // --- END Gender Property ---
 
-        public double? AverageRating { get; set; } // Nullable double for rating
+        public double? AverageRating { get; set; }
+
+        // --- ADD NumberOfReviews ---
+        public int? NumberOfReviews { get; set; } // Nullable int
+        // --- END NumberOfReviews ---
     }
 }

@@ -1,21 +1,28 @@
 // server/src/MerchWebsite.API/Controllers/ProductsController.cs
 using MerchWebsite.API.Data;
 using MerchWebsite.API.Entities;
+using MerchWebsite.API.Models.DTOs; // <<< Add DTO namespace
+using Microsoft.AspNetCore.Authorization; // <<< Add Authorization namespace
+using Microsoft.AspNetCore.Identity; // <<< Add Identity namespace
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Linq; // <<< Add using for LINQ methods like Where
+using System.Linq;
+using System.Security.Claims; // <<< Add Claims namespace
+using Microsoft.AspNetCore.Authentication.JwtBearer; // <<< Add JWT Scheme
 
 namespace MerchWebsite.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/[controller]")] // api/products
     public class ProductsController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly UserManager<User> _userManager; // <<< Inject UserManager
 
-        public ProductsController(AppDbContext context)
+        public ProductsController(AppDbContext context, UserManager<User> userManager) // <<< Update Constructor
         {
             _context = context;
+            _userManager = userManager; // <<< Assign UserManager
         }
 
         // --- MODIFY GetProducts Method ---
@@ -98,6 +105,7 @@ namespace MerchWebsite.API.Controllers
         }
 
 
+        // --- ADD POST Method for Reviews ---
         // GET: api/products/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Product>> GetProduct(int id)
@@ -106,6 +114,80 @@ namespace MerchWebsite.API.Controllers
             var product = await _context.Products.FindAsync(id);
             if (product == null) return NotFound();
             return Ok(product);
+        }
+
+        [HttpPost("{productId:int}/reviews")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)] // Require login
+        public async Task<ActionResult> AddReview(int productId, [FromBody] CreateReviewDto reviewDto)
+        {
+            // 1. Get User ID
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized("User ID claim not found."); // Should not happen if authorized
+
+            // 2. Check if Product exists
+            var productExists = await _context.Products.AnyAsync(p => p.Id == productId);
+            if (!productExists) return NotFound($"Product with ID {productId} not found.");
+
+            // 3. (Optional) Check if user already reviewed this product
+            var existingReview = await _context.Reviews
+                                       .FirstOrDefaultAsync(r => r.ProductId == productId && r.UserId == userId);
+
+            if (existingReview != null)
+            {
+                // Option 1: Update existing review
+                existingReview.Rating = reviewDto.Rating;
+                existingReview.Comment = reviewDto.Comment;
+                existingReview.ReviewDate = DateTime.UtcNow;
+                Console.WriteLine($"API: Updating review for product {productId} by user {userId}");
+                // _context.Reviews.Update(existingReview); // Update is often tracked automatically
+
+                // Option 2: Prevent multiple reviews (uncomment to enable)
+                // return BadRequest(new ProblemDetails { Title = "You have already reviewed this product." });
+            }
+            else
+            {
+                // 4. Create new Review Entity if none exists
+                var review = new Review
+                {
+                    Rating = reviewDto.Rating,
+                    Comment = reviewDto.Comment,
+                    ReviewDate = DateTime.UtcNow,
+                    ProductId = productId,
+                    UserId = userId
+                    // Product and User navigation properties will be handled by EF if needed
+                };
+                Console.WriteLine($"API: Adding new review for product {productId} by user {userId}");
+                _context.Reviews.Add(review);
+            }
+
+
+            // 5. Save review changes
+            var reviewSaveResult = await _context.SaveChangesAsync();
+            if (reviewSaveResult <= 0 && existingReview == null) // Check if save failed for NEW review
+            {
+                return StatusCode(500, new ProblemDetails { Title = "Failed to save review." });
+            }
+
+            // 6. Recalculate and Update Product Average Rating & Count
+            // Use a separate transaction or ensure atomicity if critical
+            var productToUpdate = await _context.Products.FindAsync(productId);
+            if (productToUpdate != null)
+            {
+                var reviewsForProduct = await _context.Reviews
+                                                .Where(r => r.ProductId == productId)
+                                                .ToListAsync();
+
+                productToUpdate.NumberOfReviews = reviewsForProduct.Count;
+                productToUpdate.AverageRating = (reviewsForProduct.Count > 0)
+                                                ? reviewsForProduct.Average(r => r.Rating)
+                                                : null; // Set to null if no reviews left (e.g., if deletion was implemented)
+
+                Console.WriteLine($"API: Updating product {productId} rating to {productToUpdate.AverageRating}, count {productToUpdate.NumberOfReviews}");
+                await _context.SaveChangesAsync(); // Save product update
+            }
+
+            // Return success (No Content is common for updates, OK or Created for new)
+            return (existingReview != null) ? Ok() : CreatedAtAction(nameof(GetProduct), new { id = productId }, null); // Return 200 OK if updated, 201 Created if new
         }
     }
 }

@@ -1,3 +1,4 @@
+// client/src/app/models/product.model.ts
 export interface Product {
     id: number;
     name: string;
@@ -6,5 +7,6 @@ export interface Product {
     imageUrl?: string | null;
     category: string;
     gender?: string | null;
-    averageRating?: number | null; // <<< ADD Optional rating
+    averageRating?: number | null; // <<< VERIFY this exists
+    numberOfReviews?: number | null; // <<< ADD this line
 }
