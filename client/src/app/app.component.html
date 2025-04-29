@@ -12,13 +12,15 @@
                 <a routerLink="/cart">Cart ({{ cartItemCount$ | async }})</a>
             </li>
             <!-- Conditional Login/Register or Logout links -->
-            <ng-container *ngIf="!authService.isLoggedIn()"> <!-- Call the method -->
+            <!-- Conditional Login/Register or Logout links -->
+            <ng-container *ngIf="!(authService.isLoggedIn)">
                 <li><a routerLink="/login">Login</a></li>
                 <li><a routerLink="/register">Register</a></li>
             </ng-container>
-            <ng-container *ngIf="authService.isLoggedIn()"> <!-- Call the method -->
+            <ng-container *ngIf="authService.isLoggedIn">
+                <!-- Ensure this <li> exists -->
+                <li><a routerLink="/orders">My Orders</a></li>
                 <li><button (click)="logout()">Logout</button></li>
-                <!-- Add username display later if needed -->
             </ng-container>
         </ul>
     </nav>

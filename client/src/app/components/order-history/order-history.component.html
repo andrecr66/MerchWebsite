@@ -1,0 +1,165 @@
+<!-- client/src/app/components/order-history/order-history.component.html -->
+<div class="order-history-container">
+    <h2>Your Order History</h2>
+
+    <div *ngIf="isLoading" class="loading-message">
+        <p>Loading your orders...</p>
+    </div>
+
+    <div *ngIf="error && !isLoading" class="error-message">
+        <p>Error loading orders: {{ error }}</p>
+    </div>
+
+    <div *ngIf="!isLoading && !error">
+        <div *ngIf="orders.length > 0; else noOrders">
+
+            <div class="order-list">
+                <!-- Loop through each order -->
+                <div class="order-summary-card" *ngFor="let order of orders">
+                    <div class="order-header">
+                        <div>
+                            <span class="label">Order Date:</span>
+                            <span>{{ order.orderDate | date:'medium' }}</span> <!-- Format date -->
+                        </div>
+                        <div>
+                            <span class="label">Total:</span>
+                            <span class="order-total">{{ order.grandTotal | currency }}</span> ({{ getTotalItems(order)
+                            }} items)
+                        </div>
+                        <div>
+                            <span class="label">Order ID:</span>
+                            <span>#{{ order.id }}</span>
+                        </div>
+                        <!-- Optional: Add Order Status Here -->
+                        <!-- <div><span class="label">Status:</span><span>{{ order.status || 'Processing' }}</span></div> -->
+                        <!-- Optional: Link to Order Detail Page -->
+                        <!-- <a [routerLink]="['/orders', order.id]">View Details</a> -->
+                    </div>
+
+                    <div class="order-items-preview">
+                        <!-- Show first few item images as preview -->
+                        <span *ngFor="let item of order.items.slice(0, 5)" class="item-preview"> <!-- Limit preview -->
+                            <img [src]="item.productImageUrl || '/assets/images/placeholder.png'"
+                                [alt]="item.productName" [title]="item.quantity + ' x ' + item.productName">
+                        </span>
+                        <span *ngIf="order.items.length > 5" class="more-items">...</span>
+                    </div>
+
+                    <div class="order-shipping">
+                        <span class="label">Shipped To:</span>
+                        <span>{{ order.shippingAddress_FullName }}, {{ order.shippingAddress_City }}</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <ng-template #noOrders>
+            <p class="no-orders-message">You haven't placed any orders yet.</p>
+            <a routerLink="/products">Start Shopping!</a>
+        </ng-template>
+    </div>
+</div>
+
+<!-- Styles -->
+<style>
+    .order-history-container {
+        max-width: 900px;
+        margin: 1em auto;
+        padding: 1em;
+    }
+
+    h2 {
+        margin-bottom: 1.5em;
+        text-align: center;
+        color: #333;
+    }
+
+    .loading-message,
+    .error-message,
+    .no-orders-message {
+        text-align: center;
+        padding: 2em;
+        color: #777;
+    }
+
+    .error-message {
+        color: red;
+    }
+
+    .no-orders-message a {
+        margin-left: 1em;
+    }
+
+    .order-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5em;
+    }
+
+    .order-summary-card {
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        background-color: #fff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+        /* Contain elements */
+    }
+
+    .order-header {
+        background-color: #f8f9fa;
+        padding: 0.8em 1.2em;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        /* Allow wrapping on small screens */
+        gap: 1em;
+        font-size: 0.9em;
+        color: #555;
+        border-bottom: 1px solid #eee;
+    }
+
+    .order-header .label {
+        font-weight: 600;
+        margin-right: 0.4em;
+    }
+
+    .order-header .order-total {
+        font-weight: bold;
+        color: #333;
+    }
+
+    .order-items-preview {
+        padding: 1em 1.2em;
+        display: flex;
+        gap: 0.5em;
+        align-items: center;
+    }
+
+    .item-preview img {
+        width: 40px;
+        height: 40px;
+        object-fit: cover;
+        border: 1px solid #eee;
+        border-radius: 4px;
+    }
+
+    .more-items {
+        font-style: italic;
+        color: #888;
+        margin-left: 0.5em;
+    }
+
+    .order-shipping {
+        padding: 0.8em 1.2em;
+        font-size: 0.9em;
+        color: #666;
+        background-color: #f8f9fa;
+        border-top: 1px solid #eee;
+    }
+
+    .order-shipping .label {
+        font-weight: 600;
+        margin-right: 0.4em;
+    }
+</style>

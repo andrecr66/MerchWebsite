@@ -7,6 +7,7 @@ import { CartComponent } from './components/cart/cart.component';
 import { CheckoutComponent } from './components/checkout/checkout.component';
 // --- IMPORT ProductDetailComponent (will create next) ---
 import { ProductDetailComponent } from './components/product-detail/product-detail.component';
+import { OrderHistoryComponent } from './components/order-history/order-history.component'; // <<< ADD IMPORT
 
 export const routes: Routes = [
     { path: 'products', component: ProductListComponent },
@@ -18,6 +19,7 @@ export const routes: Routes = [
     { path: 'register', component: RegisterComponent },
     { path: 'cart', component: CartComponent },
     { path: 'checkout', component: CheckoutComponent },
+    { path: 'orders', component: OrderHistoryComponent }, // <<< ADD ROUTE
     // Default route
     { path: '', redirectTo: '/products', pathMatch: 'full' },
     // { path: '**', component: NotFoundComponent } // Wildcard for 404

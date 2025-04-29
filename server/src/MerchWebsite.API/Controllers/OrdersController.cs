@@ -23,6 +23,50 @@ namespace MerchWebsite.API.Controllers
             _context = context;
         }
 
+        // --- ADD Method to Get User's Orders ---
+        [HttpGet] // GET /api/orders
+        public async Task<ActionResult<IEnumerable<OrderDto>>> GetOrdersForUser()
+        {
+            // 1. Get User ID
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized("User ID claim not found.");
+
+            Console.WriteLine($"API: Fetching orders for user {userId}");
+
+            // 2. Query Orders for the user
+            var orders = await _context.Orders
+                .Where(o => o.UserId == userId)
+                .Include(o => o.Items) // Eager load items
+                                       // .ThenInclude(i => i.Product) // Usually NOT needed if OrderItem has snapshot data
+                .OrderByDescending(o => o.OrderDate) // Show newest orders first
+                .Select(o => new OrderDto // Map to DTO
+                {
+                    Id = o.Id,
+                    UserId = o.UserId, // Keep internal if needed, or omit from DTO later
+                    OrderDate = o.OrderDate,
+                    ShippingAddress_FullName = o.ShippingAddress_FullName, // Include key info for list display
+                    ShippingAddress_City = o.ShippingAddress_City, // Example key info
+                    ShippingAddress_Country = o.ShippingAddress_Country, // Example key info
+                    Subtotal = o.Subtotal,
+                    ShippingFee = o.ShippingFee,
+                    GrandTotal = o.GrandTotal,
+                    // Status = o.Status.ToString(), // If status is implemented
+                    // Map OrderItems to OrderItemDtos
+                    Items = o.Items.Select(oi => new OrderItemDto
+                    {
+                        ProductId = oi.ProductId,
+                        ProductName = oi.ProductName, // Use snapshotted data
+                        ProductImageUrl = oi.ProductImageUrl, // Use snapshotted data
+                        Price = oi.Price, // Use snapshotted data
+                        Quantity = oi.Quantity
+                    }).ToList()
+                })
+                .ToListAsync(); // Execute query
+
+            Console.WriteLine($"API: Found {orders.Count} orders for user {userId}.");
+            return Ok(orders); // Return 200 OK with the list of OrderDtos
+        }
+        // --- END Method to Get User's Orders ---
         // POST /api/orders
         [HttpPost]
         public async Task<ActionResult<OrderDto>> PlaceOrder([FromBody] CreateOrderDto createOrderDto)
@@ -54,7 +98,7 @@ namespace MerchWebsite.API.Controllers
                 // Defensive check if product wasn't loaded (shouldn't happen with Include)
                 if (cartItem.Product == null)
                 {
-                     return StatusCode(500, new ProblemDetails{ Title = "Error retrieving product details for cart item.", Detail = $"ProductId: {cartItem.ProductId}"});
+                    return StatusCode(500, new ProblemDetails { Title = "Error retrieving product details for cart item.", Detail = $"ProductId: {cartItem.ProductId}" });
                 }
 
                 var orderItem = new OrderItem
@@ -108,7 +152,7 @@ namespace MerchWebsite.API.Controllers
 
             if (result <= 0) // Should be > 0 if order/items added and cart/items removed
             {
-                 return StatusCode(500, new ProblemDetails { Title = "Failed to save the order."});
+                return StatusCode(500, new ProblemDetails { Title = "Failed to save the order." });
             }
 
             // --- 9. Map created Order to OrderDto and Return ---
@@ -138,14 +182,14 @@ namespace MerchWebsite.API.Controllers
                 }).ToList()
             };
 
-             // Return 201 Created with the location of the new resource (optional but good practice)
-             // and the created OrderDto
-             // return CreatedAtAction(nameof(GetOrderById), new { id = order.Id }, orderDto); // Need a GetOrderById method for this
-             return Ok(orderDto); // Simpler: return 200 OK with the OrderDto for now
+            // Return 201 Created with the location of the new resource (optional but good practice)
+            // and the created OrderDto
+            // return CreatedAtAction(nameof(GetOrderById), new { id = order.Id }, orderDto); // Need a GetOrderById method for this
+            return Ok(orderDto); // Simpler: return 200 OK with the OrderDto for now
         }
 
-         // TODO: Add endpoint to get order details later (e.g., GET /api/orders/{id})
-         // [HttpGet("{id:int}", Name = "GetOrderById")]
-         // public async Task<ActionResult<OrderDto>> GetOrderById(int id) { ... }
+        // TODO: Add endpoint to get order details later (e.g., GET /api/orders/{id})
+        // [HttpGet("{id:int}", Name = "GetOrderById")]
+        // public async Task<ActionResult<OrderDto>> GetOrderById(int id) { ... }
     }
 }
