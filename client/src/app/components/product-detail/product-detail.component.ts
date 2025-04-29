@@ -15,6 +15,7 @@ import { Review } from '../../models/review/review.model';
 import { CreateReviewDto } from '../../models/review/create-review.dto';
 import { OrderDto } from '../../models/order/order.dto'; // Ensure OrderDto is imported if used (needed for submitReview->reloadProductData->next type)
 
+
 @Component({
   selector: 'app-product-detail',
   standalone: true,
@@ -92,7 +93,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
             if (productData) {
               console.log('Product data loaded, skipping review fetch in tap for now.');
               // --- Review loading is commented out ---
-              // this.loadReviews(productData.id);
+              this.loadReviews(productData.id);
             }
           }),
           catchError(err => { // Catch errors from getProductById ONLY

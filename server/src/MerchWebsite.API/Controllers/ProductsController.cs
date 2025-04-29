@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Security.Claims; // <<< Add Claims namespace
 using Microsoft.AspNetCore.Authentication.JwtBearer; // <<< Add JWT Scheme
+using MerchWebsite.API.Models.DTOs; // <<< ADD THIS LINE
 
 namespace MerchWebsite.API.Controllers
 {
@@ -189,5 +190,40 @@ namespace MerchWebsite.API.Controllers
             // Return success (No Content is common for updates, OK or Created for new)
             return (existingReview != null) ? Ok() : CreatedAtAction(nameof(GetProduct), new { id = productId }, null); // Return 200 OK if updated, 201 Created if new
         }
+
+        // --- ADD Endpoint to GET Reviews ---
+        // GET: api/products/{productId}/reviews
+        [HttpGet("{productId:int}/reviews")]
+        public async Task<ActionResult<IEnumerable<ReviewDto>>> GetReviewsForProduct(int productId)
+        {
+            Console.WriteLine($"API: Getting reviews for product ID: {productId}"); // Log request
+
+            // Optional: Check if product exists first
+            var productExists = await _context.Products.AnyAsync(p => p.Id == productId);
+            if (!productExists)
+            {
+                return NotFound($"Product with ID {productId} not found.");
+            }
+
+            // Query reviews for the product
+            var reviews = await _context.Reviews
+                .Where(r => r.ProductId == productId)
+                .Include(r => r.User) // <<< Include User data to get UserName
+                .OrderByDescending(r => r.ReviewDate) // <<< Show newest reviews first
+                .Select(r => new ReviewDto // <<< Map to DTO
+                {
+                    Id = r.Id,
+                    Rating = r.Rating,
+                    Comment = r.Comment,
+                    ReviewDate = r.ReviewDate,
+                    // Safely access UserName, provide default if User is somehow null
+                    UserName = r.User != null ? r.User.UserName ?? "User Unknown" : "User Not Found"
+                })
+                .ToListAsync(); // Execute query
+
+            Console.WriteLine($"API: Found {reviews.Count} reviews for product {productId}."); // Log count
+            return Ok(reviews); // Return 200 OK with the list of review DTOs
+        }
+        // --- END Endpoint to GET Reviews ---
     }
 }

@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MerchWebsite.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ea7cecb7f834e8f6af1354491d2aed340deac4d9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4fdc85547167aed4df02987961851bd2811c264c")]
 [assembly: System.Reflection.AssemblyProductAttribute("MerchWebsite.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MerchWebsite.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
