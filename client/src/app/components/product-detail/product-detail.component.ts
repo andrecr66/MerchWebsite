@@ -87,13 +87,11 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
         }
         // Fetch product
         return this.productService.getProductById(productId).pipe(
+          // Inside ngOnInit -> switchMap -> getProductById().pipe(...)
           tap(productData => {
-            // Successfully got product data (or null from previous catchError)
-            // Only attempt review load if product was actually found
             if (productData) {
-              console.log('Product data loaded, skipping review fetch in tap for now.');
-              // --- Review loading is commented out ---
-              this.loadReviews(productData.id);
+              console.log('Product data loaded, now fetching reviews.');
+              this.loadReviews(productData.id); // <<< UNCOMMENT THIS LINE
             }
           }),
           catchError(err => { // Catch errors from getProductById ONLY
@@ -181,10 +179,8 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
           // Reload product data to show updated average rating/count
           // Or potentially just reload reviews if backend returns updated product
           if (this.product) {
-            // Re-fetch product to update average rating display
             this.reloadProductData(this.product.id);
-            // Optionally re-fetch reviews immediately
-            this.loadReviews(this.product.id);
+            this.loadReviews(this.product.id); // <<< UNCOMMENT THIS LINE
           }
         },
         error: (err) => {

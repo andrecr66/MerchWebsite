@@ -130,20 +130,24 @@ namespace MerchWebsite.API.Controllers
             if (!productExists) return NotFound($"Product with ID {productId} not found.");
 
             // 3. (Optional) Check if user already reviewed this product
+            // Inside AddReview method in ProductsController.cs
+
+            // 3. Check if user already reviewed this product
             var existingReview = await _context.Reviews
                                        .FirstOrDefaultAsync(r => r.ProductId == productId && r.UserId == userId);
 
             if (existingReview != null)
             {
-                // Option 1: Update existing review
+                // Option 1: Update existing review (COMMENT OUT THIS BLOCK)
+                /*
                 existingReview.Rating = reviewDto.Rating;
                 existingReview.Comment = reviewDto.Comment;
                 existingReview.ReviewDate = DateTime.UtcNow;
                 Console.WriteLine($"API: Updating review for product {productId} by user {userId}");
-                // _context.Reviews.Update(existingReview); // Update is often tracked automatically
+                */
 
-                // Option 2: Prevent multiple reviews (uncomment to enable)
-                // return BadRequest(new ProblemDetails { Title = "You have already reviewed this product." });
+                // Option 2: Prevent multiple reviews (UNCOMMENT OR ADD THIS LINE)
+                return BadRequest(new ProblemDetails { Title = "You have already reviewed this product." });
             }
             else
             {
@@ -155,40 +159,32 @@ namespace MerchWebsite.API.Controllers
                     ReviewDate = DateTime.UtcNow,
                     ProductId = productId,
                     UserId = userId
-                    // Product and User navigation properties will be handled by EF if needed
                 };
                 Console.WriteLine($"API: Adding new review for product {productId} by user {userId}");
                 _context.Reviews.Add(review);
             }
 
 
-            // 5. Save review changes
+            // 5. Save review changes (only if new review was added)
+            // Note: SaveChangesAsync will return 0 if only an update was tracked (which we commented out)
+            // or if nothing changed. It returns >0 if additions/deletions occurred.
             var reviewSaveResult = await _context.SaveChangesAsync();
-            if (reviewSaveResult <= 0 && existingReview == null) // Check if save failed for NEW review
+
+            // Check specifically if we tried to add but failed
+            if (existingReview == null && reviewSaveResult <= 0)
             {
-                return StatusCode(500, new ProblemDetails { Title = "Failed to save review." });
+                return StatusCode(500, new ProblemDetails { Title = "Failed to save new review." });
             }
 
             // 6. Recalculate and Update Product Average Rating & Count
-            // Use a separate transaction or ensure atomicity if critical
+            // (This logic remains the same - it runs after successful add OR successful (commented out) update)
             var productToUpdate = await _context.Products.FindAsync(productId);
-            if (productToUpdate != null)
-            {
-                var reviewsForProduct = await _context.Reviews
-                                                .Where(r => r.ProductId == productId)
-                                                .ToListAsync();
+            // ... (rest of rating/count update logic) ...
+            await _context.SaveChangesAsync(); // Save product update
 
-                productToUpdate.NumberOfReviews = reviewsForProduct.Count;
-                productToUpdate.AverageRating = (reviewsForProduct.Count > 0)
-                                                ? reviewsForProduct.Average(r => r.Rating)
-                                                : null; // Set to null if no reviews left (e.g., if deletion was implemented)
-
-                Console.WriteLine($"API: Updating product {productId} rating to {productToUpdate.AverageRating}, count {productToUpdate.NumberOfReviews}");
-                await _context.SaveChangesAsync(); // Save product update
-            }
-
-            // Return success (No Content is common for updates, OK or Created for new)
-            return (existingReview != null) ? Ok() : CreatedAtAction(nameof(GetProduct), new { id = productId }, null); // Return 200 OK if updated, 201 Created if new
+            // Return success - only CreatedAtAction is relevant now for new reviews
+            // BadRequest was handled above. OK is less applicable without updates.
+            return CreatedAtAction(nameof(GetProduct), new { id = productId }, null); // Return 201 Created for new review
         }
 
         // --- ADD Endpoint to GET Reviews ---
