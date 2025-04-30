@@ -41,74 +41,39 @@ static async Task SeedDatabaseAsync(WebApplication app)
             }
 
             // --- Seed Products with Categories ---
+            // Inside SeedDatabaseAsync in Program.cs
+
+            // --- Seed Products (Replace previous list) ---
             if (!context.Products.Any())
             {
-                // Inside SeedDatabaseAsync in Program.cs, within the product list creation
-
-                // Example snippet from SeedDatabaseAsync in Program.cs
-                // Inside SeedDatabaseAsync in Program.cs
-                // Corrected example snippet within SeedDatabaseAsync
                 var products = new List<Product>
-            {
-                new Product {
-                    Id = 0, // Let DB generate ID
-                    Name = "Awesome T-Shirt",
-                    Description = "High-quality cotton t-shirt with awesome design.", // <<< Ensure present
-                    Price = 19.99M, // <<< Ensure present and non-zero with M
-                    ImageUrl = "/assets/images/tshirt_awesome.jpg", // <<< Ensure present
-                    Category = "T-Shirts", // <<< Ensure present
-                    Gender = "Unisex", // <<< Ensure present
-                    AverageRating = 4.5,
-                    NumberOfReviews = 120
-                },
-                new Product {
-                    Id = 0,
-                    Name = "Cool Hoodie",
-                    Description = "Warm and comfortable hoodie.", // <<< Ensure present
-                    Price = 49.99M, // <<< Ensure present and non-zero with M
-                    ImageUrl = "/assets/images/hoodie_cool.jpg", // <<< Ensure present
-                    Category = "Hoodies", // <<< Ensure present
-                    Gender = "Unisex", // <<< Ensure present
-                    AverageRating = 4.8,
-                    NumberOfReviews = 85
-                },
-                new Product {
-                    Id = 0,
-                    Name = "Stylish Mug",
-                    Description = "Ceramic mug, perfect for your morning coffee.", // <<< Ensure present
-                    Price = 9.99M, // <<< Ensure present and non-zero with M
-                    ImageUrl = "/assets/images/mug_stylish.jpg", // <<< Ensure present
-                    Category = "Accessories", // <<< Ensure present
-                    Gender = null, // <<< Gender can be null if intended
-                    AverageRating = 4.2,
-                    NumberOfReviews = 55
-                },
-                new Product {
-                    Id = 0,
-                    Name = "Basic Black T-Shirt",
-                    Description = "Simple, essential black t-shirt.", // <<< Ensure present
-                    Price = 14.99M, // <<< Ensure present and non-zero with M
-                    ImageUrl = "/assets/images/tshirt_black.jpg", // <<< Ensure present
-                    Category = "T-Shirts", // <<< Ensure present
-                    Gender = "Men", // <<< Ensure present
-                    AverageRating = 3.9,
-                    NumberOfReviews = 210
-                },
-                new Product {
-                    Id = 0,
-                    Name = "Fitted V-Neck T-Shirt",
-                    Description = "Soft, fitted v-neck.", // <<< Ensure present
-                    Price = 18.99M, // <<< Ensure present and non-zero with M
-                    ImageUrl = "/assets/images/tshirt_vneck_women.jpg", // <<< Ensure present
-                    Category = "T-Shirts", // <<< Ensure present
-                    Gender = "Women", // <<< Ensure present
-                    AverageRating = null, // Rating can be null
-                    NumberOfReviews = 0
-                },
-            };
+    {
+        // T-Shirts (4)
+        new Product { Name = "Classic Logo Tee", Description = "Comfortable cotton tee with classic site logo.", Price = 22.50M, ImageUrl = "/assets/images/tee_logo_classic.jpg", Category = "T-Shirts", Gender = "Unisex", AverageRating = null, NumberOfReviews = 0 },
+        new Product { Name = "Vintage Wash Tee", Description = "Soft vintage wash effect t-shirt.", Price = 25.00M, ImageUrl = "/assets/images/tee_vintage_wash.jpg", Category = "T-Shirts", Gender = "Men", AverageRating = null, NumberOfReviews = 0 },
+        new Product { Name = "Organic Cotton V-Neck", Description = "Sustainable and soft organic cotton v-neck.", Price = 28.00M, ImageUrl = "/assets/images/tee_vneck_organic.jpg", Category = "T-Shirts", Gender = "Women", AverageRating = null, NumberOfReviews = 0 },
+        new Product { Name = "Graphic Print Tee", Description = "T-shirt with a unique graphic design.", Price = 24.99M, ImageUrl = "/assets/images/tee_graphic.jpg", Category = "T-Shirts", Gender = "Unisex", AverageRating = null, NumberOfReviews = 0 },
+        // Hoodies (2)
+        new Product { Name = "Zip-Up Hoodie", Description = "Versatile full zip-up hoodie.", Price = 55.00M, ImageUrl = "/assets/images/hoodie_zipup.jpg", Category = "Hoodies", Gender = "Unisex", AverageRating = null, NumberOfReviews = 0 },
+        new Product { Name = "Pullover Hoodie - Heavyweight", Description = "Extra warm heavyweight pullover.", Price = 60.00M, ImageUrl = "/assets/images/hoodie_heavy.jpg", Category = "Hoodies", Gender = "Men", AverageRating = null, NumberOfReviews = 0 },
+        // Accessories (4)
+        new Product { Name = "Embroidered Baseball Cap", Description = "Classic baseball cap with embroidered logo.", Price = 20.00M, ImageUrl = "/assets/images/cap_baseball.jpg", Category = "Accessories", Gender = "Unisex", AverageRating = null, NumberOfReviews = 0 },
+        new Product { Name = "Canvas Tote Bag", Description = "Durable canvas tote bag for everyday use.", Price = 15.50M, ImageUrl = "/assets/images/bag_tote.jpg", Category = "Accessories", Gender = null, AverageRating = null, NumberOfReviews = 0 },
+        new Product { Name = "Stainless Steel Water Bottle", Description = "Insulated water bottle, keeps drinks cold/hot.", Price = 29.95M, ImageUrl = "/assets/images/bottle_steel.jpg", Category = "Accessories", Gender = null, AverageRating = null, NumberOfReviews = 0 },
+        new Product { Name = "Enamel Pin Set (3 Pins)", Description = "Set of three cool enamel pins.", Price = 12.00M, ImageUrl = "/assets/images/pins_set.jpg", Category = "Accessories", Gender = null, AverageRating = null, NumberOfReviews = 0 },
+    };
+
+                // Assign a default SellerId (replace with a real Seller User ID from your AspNetUsers table)
+                // Find a user ID first, or hardcode if you know one for testing.
+                // Example: Assuming 'userManager' is available and a user 'testseller' exists
+                // var sellerUser = await userManager.FindByNameAsync("testseller"); // Or FindByIdAsync
+                // string defaultSellerId = sellerUser?.Id ?? "DEFAULT_SELLER_ID_ERROR"; // Handle user not found
+
+
+
                 context.Products.AddRange(products);
                 await context.SaveChangesAsync();
-                Console.WriteLine("Seeded sample products with categories.");
+                Console.WriteLine("Seeded 10 sample products.");
             }
             else
             {
