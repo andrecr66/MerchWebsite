@@ -1,37 +1,140 @@
-<h2>Login</h2>
+<!-- client/src/app/components/login/login.component.html -->
 
-<form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-    <div>
-        <label for="username">Username:</label>
-        <input id="username" type="text" formControlName="username">
-        <!-- Basic validation message -->
-        <div
-            *ngIf="loginForm.controls['username'].invalid && (loginForm.controls['username'].dirty || loginForm.controls['username'].touched)">
-            <small *ngIf="loginForm.controls['username'].errors?.['required']" style="color: red;">Username is
-                required.</small>
+<div class="login-container"> <!-- Add a container if you don't have one -->
+    <h2>Login</h2>
+
+    <!-- Display errors -->
+    <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+    </div>
+
+    <!-- Login Form (Assuming Reactive Forms) -->
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+            <label for="username">Username:</label>
+            <input type="text" id="username" formControlName="username" required>
+            <!-- Add validation messages if needed -->
+            <div *ngIf="username?.invalid && (username?.dirty || username?.touched)" class="error">
+                Username is required.
+            </div>
         </div>
-    </div>
 
-    <div>
-        <label for="password">Password:</label>
-        <input id="password" type="password" formControlName="password">
-        <!-- Basic validation message -->
-        <div
-            *ngIf="loginForm.controls['password'].invalid && (loginForm.controls['password'].dirty || loginForm.controls['password'].touched)">
-            <small *ngIf="loginForm.controls['password'].errors?.['required']" style="color: red;">Password is
-                required.</small>
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" formControlName="password" required>
+            <!-- Add validation messages if needed -->
+            <div *ngIf="password?.invalid && (password?.dirty || password?.touched)" class="error">
+                Password is required.
+            </div>
         </div>
+
+        <button type="submit" [disabled]="loginForm.invalid || isSubmitting">
+            {{ isSubmitting ? 'Logging in...' : 'Log In' }}
+        </button>
+    </form>
+
+    <hr class="separator"> <!-- Optional separator -->
+
+    <!-- *** ADD LINK/BUTTON TO REGISTER *** -->
+    <div class="register-link">
+        <span>Don't have an account?</span>
+        <a routerLink="/register">Create new account</a>
+        <!-- OR make it look like a button: -->
+        <!-- <button type="button" class="secondary-button" routerLink="/register">Create new account</button> -->
     </div>
+    <!-- *** END LINK/BUTTON TO REGISTER *** -->
 
-    <!-- Display general error messages -->
-    <div *ngIf="error" style="color: red; margin-top: 10px;">
-        {{ error }}
-    </div>
+</div>
 
-    <button type="submit" [disabled]="isLoading || loginForm.invalid">
-        {{ isLoading ? 'Logging in...' : 'Login' }}
-    </button>
-</form>
+<!-- Basic Styles (add to login.component.css ideally) -->
+<style>
+    .login-container {
+        max-width: 400px;
+        margin: 2em auto;
+        padding: 2em;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+    }
 
-<!-- Link to registration page -->
-<p>Don't have an account? <a routerLink="/register">Register here</a></p>
+    .form-group {
+        margin-bottom: 1em;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 0.3em;
+        font-weight: bold;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+        width: 100%;
+        padding: 0.6em;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    button[type="submit"] {
+        width: 100%;
+        padding: 0.8em;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 1em;
+        cursor: pointer;
+    }
+
+    button[type="submit"]:hover {
+        background-color: #0056b3;
+    }
+
+    button[disabled] {
+        background-color: #cccccc;
+        cursor: not-allowed;
+    }
+
+    .error-message {
+        color: red;
+        background-color: #fdd;
+        border: 1px solid red;
+        padding: 0.8em;
+        margin-bottom: 1em;
+        border-radius: 4px;
+    }
+
+    .error {
+        color: red;
+        font-size: 0.8em;
+    }
+
+    .separator {
+        margin: 1.5em 0;
+        border: 0;
+        border-top: 1px solid #eee;
+    }
+
+    .register-link {
+        text-align: center;
+        margin-top: 1em;
+        font-size: 0.9em;
+    }
+
+    .register-link span {
+        margin-right: 0.5em;
+    }
+
+    .register-link a {
+        color: #007bff;
+        text-decoration: none;
+    }
+
+    .register-link a:hover {
+        text-decoration: underline;
+    }
+
+    /* Optional button style */
+    /* .secondary-button { background-color: #28a745; border: none; padding: 0.7em 1.5em; color: white; ... } */
+</style>

@@ -1,28 +1,25 @@
 // client/src/app/services/auth.service.ts
 import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http'; // Import HttpErrorResponse
-import { Observable, tap, throwError, catchError } from 'rxjs'; // Import throwError, catchError
-// --- FIX: Correct the environment import path ---
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, tap, throwError, catchError } from 'rxjs';
 import { environment } from '../../environments/environment';
-// --- End Path Correction ---
 import { CartService } from './cart.service';
-import { Cart } from '../models/cart/cart.model'; // Import Cart if needed
-
+import { Cart } from '../models/cart/cart.model'; // Keep if used elsewhere
+import { Router } from '@angular/router'; // <<< IMPORT Router
 // Keep your DTO interfaces
 interface RegisterDto { email: string; username: string; password?: string; }
 interface LoginDto { username: string; password?: string; }
 interface AuthResponse { username: string; email: string; token: string; } // Ensure token is here
 
-@Injectable({
-    providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class AuthService {
     private http = inject(HttpClient);
     private platformId = inject(PLATFORM_ID);
     private cartService = inject(CartService);
+    private router = inject(Router); // <<< INJECT Router
 
-    private apiUrl = `${environment.apiUrl}/auth`; // Use environment variable
+    private apiUrl = `${environment.apiUrl}/auth`;
     private tokenKey = 'authToken';
 
     register(registerData: RegisterDto): Observable<AuthResponse> {
@@ -87,11 +84,16 @@ export class AuthService {
             const token = this.getToken();
             localStorage.removeItem(this.tokenKey);
             console.log('AuthService: Token removed.');
+
             if (token) {
-                // Assuming clearLocalCart exists on CartService
                 this.cartService.clearLocalCart();
                 console.log('AuthService: Local cart cleared on logout.');
             }
+
+            // --- ADD NAVIGATION ---
+            this.router.navigate(['/login']); // <<< Navigate to login page
+            console.log('AuthService: Navigated to /login');
+            // --- END NAVIGATION ---
         }
     }
 
