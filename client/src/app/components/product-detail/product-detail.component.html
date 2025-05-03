@@ -2,7 +2,7 @@
 <div class="product-detail-page">
 
     <!-- Back Link -->
-    <div class="back-link">
+    <div class="back-link" *ngIf="!isLoading && !error">
         <a routerLink="/products">« Back to Products</a>
     </div>
 
@@ -23,14 +23,13 @@
         <!-- Left Column: Image Gallery -->
         <div class="product-gallery">
             <img class="main-image" [src]="product.imageUrl || '/assets/images/placeholder.png'" [alt]="product.name">
+            <!-- Thumbnails Placeholder -->
         </div>
 
         <!-- Right Column: Info, Options, Actions -->
         <div class="product-info-actions">
             <h1 class="product-title">{{ product.name }}</h1>
-
-            <!-- Rating/Reviews Summary -->
-            <div class="product-rating-summary">
+            <div class="product-rating-summary"> <!-- Rating Summary -->
                 <ng-container *ngIf="product.averageRating && product.averageRating > 0">
                     <span class="stars" [title]="(product.averageRating | number:'1.1-1') + ' stars'">
                         <span *ngFor="let i of [1,2,3,4,5]" class="star">{{ i <= product.averageRating ? '★' : '☆'
@@ -42,60 +41,63 @@
                 </ng-container>
                 <ng-container *ngIf="!product.averageRating || product.averageRating <= 0">
                     <span class="no-reviews">No ratings yet.</span>
+                    <!-- Updated "Be the first" link to also toggle form -->
                     <a *ngIf="authService.isLoggedIn()" (click)="showReviewForm = true; scrollToReviews($event)"
                         href="javascript:void(0)" class="review-count">(Be the first to review!)</a>
                 </ng-container>
             </div>
-            <!-- End Rating Summary -->
-
             <hr>
             <p class="product-price">{{ product.price | currency }}</p>
-            <!-- Basic Specs/Info Table -->
             <table class="product-specs">
                 <tbody>
-                    <tr *ngIf="product.category"> <!-- Around Line 50 -->
+                    <tr *ngIf="product.category">
                         <th>Category:</th>
-                        <td>{{ product.category }}</td> <!-- Around Line 53 -->
+                        <td>{{ product.category }}</td>
                     </tr>
                     <tr *ngIf="product.gender">
                         <th>Gender:</th>
                         <td>{{ product.gender }}</td>
                     </tr>
-                    <!-- Add Material, CareInstructions later -->
                 </tbody>
             </table>
-            <div class="add-to-cart-section">
+            <div class="add-to-cart-section"> <!-- Quantity and Add Button -->
+                <div class="quantity-selector">
+                    <label for="quantity">Quantity:</label>
+                    <input type="number" id="quantity" [(ngModel)]="selectedQuantity" min="1" step="1">
+                </div>
                 <button class="add-to-cart-button" (click)="addToCart()">Add to Cart</button>
             </div>
             <hr>
-            <div class="product-description"> /* ... Description ... */ </div>
-
+            <div class="product-description"> <!-- Description -->
+                <h3>Description</h3>
+                <p>{{ product.description || 'No description available.' }}</p>
+            </div>
         </div> <!-- End Right Column -->
-
     </div> <!-- End Product Details Container -->
 
 
-    <!-- *** Reviews Section (Display AND Form) *** -->
+    <!-- *** Reviews Section *** -->
     <section id="reviews" class="reviews-section" *ngIf="product && !isLoading && !error">
+        <hr class="divider-heavy"> <!-- Add separator -->
         <h3>Customer Reviews</h3>
 
-        <!-- Write Review Button (Show only if logged in) -->
-        <div class="review-actions" *ngIf="authService.isLoggedIn()">
-            <button class="write-review-button" (click)="showReviewForm = !showReviewForm; scrollToReviews($event)">
+        <!-- Write Review Button/Login Prompt -->
+        <div class="review-actions">
+            <button *ngIf="authService.isLoggedIn()" class="write-review-button"
+                (click)="showReviewForm = !showReviewForm; scrollToReviews($event)">
                 {{ showReviewForm ? 'Cancel Review' : 'Write Your Review' }}
             </button>
-        </div>
-        <div class="review-actions" *ngIf="!authService.isLoggedIn()">
-            <p><i><a routerLink="/login" [queryParams]="{ returnUrl: router.url }">Log in</a> to write a review.</i></p>
+            <p *ngIf="!authService.isLoggedIn()">
+                <i><a routerLink="/login" [queryParams]="{ returnUrl: router.url }">Log in</a> to write a review.</i>
+            </p>
         </div>
 
-        <!-- *** Review Submission Form (Conditional) *** -->
+        <!-- Review Submission Form (Conditional) -->
         <form class="review-form" *ngIf="showReviewForm" [formGroup]="reviewForm" (ngSubmit)="submitReview()">
-            <h4>Your Review</h4>
-            <!-- Rating Input -->
+            <h4>Your Review for {{ product.name }}</h4> <!-- Use safe navigation -->
             <div class="form-group">
                 <label for="rating">Overall Rating:*</label>
-                <select id="rating" formControlName="rating">
+                <select id="rating" formControlName="rating" required> <!-- Added required attribute -->
                     <option [ngValue]="null" disabled>Select Rating</option>
                     <option [ngValue]="5">5 ★★★★★ (Excellent)</option>
                     <option [ngValue]="4">4 ★★★★☆ (Good)</option>
@@ -103,54 +105,59 @@
                     <option [ngValue]="2">2 ★★☆☆☆ (Fair)</option>
                     <option [ngValue]="1">1 ★☆☆☆☆ (Poor)</option>
                 </select>
+                <!-- Validation Message -->
                 <div *ngIf="rating?.invalid && (rating?.dirty || rating?.touched)" class="error">
                     Please select a rating (1-5).
                 </div>
             </div>
-            <!-- Comment Input -->
             <div class="form-group">
                 <label for="comment">Your Comment (Optional):</label>
                 <textarea id="comment" rows="4" formControlName="comment"
                     placeholder="Tell others what you thought..."></textarea>
+                <!-- Validation Message -->
                 <div *ngIf="comment?.invalid && comment?.errors?.['maxlength']" class="error">
                     Comment cannot exceed 1000 characters.
                 </div>
             </div>
-            <!-- Submission Error -->
+            <!-- Submission Error Display -->
             <div *ngIf="reviewSubmitError" class="error submit-error">
                 {{ reviewSubmitError }}
             </div>
-            <!-- Submit Button -->
-            <button type="submit" class="submit-review-button" [disabled]="reviewForm.invalid || isSubmittingReview">
-                {{ isSubmittingReview ? 'Submitting...' : 'Submit Review' }}
-            </button>
-            <button type="button" class="cancel-review-button" (click)="showReviewForm = false">Cancel</button>
-            <!-- Added Cancel -->
+            <!-- Action Buttons -->
+            <div>
+                <button type="submit" class="submit-review-button"
+                    [disabled]="reviewForm.invalid || isSubmittingReview">
+                    {{ isSubmittingReview ? 'Submitting...' : 'Submit Review' }}
+                </button>
+                <button type="button" class="cancel-review-button" (click)="showReviewForm = false">Cancel</button>
+            </div>
         </form>
-        <!-- *** End Review Submission Form *** -->
+        <!-- End Review Submission Form -->
 
 
-        <!-- *** Review List Display *** -->
+        <!-- Review List Display -->
         <div class="review-list">
-            <h4>Reviews</h4>
+            <h4>Reviews</h4> <!-- Added heading for clarity -->
             <div *ngIf="isLoadingReviews" class="loading-message">Loading reviews...</div>
             <div *ngIf="reviewsError && !isLoadingReviews" class="error-message">
                 Error loading reviews: {{ reviewsError }}
             </div>
             <div *ngIf="!isLoadingReviews && !reviewsError">
+                <!-- Use reviews array from component -->
                 <div *ngIf="reviews.length > 0; else noReviewsYet">
                     <!-- Loop through fetched reviews -->
                     <div class="review-item" *ngFor="let review of reviews">
                         <div class="review-rating">
-                            <span class="stars">
+                            <span class="stars" [title]="review.rating + ' stars'">
                                 <span *ngFor="let i of [1,2,3,4,5]" class="star">
                                     {{ i <= review.rating ? '★' : '☆' }} </span>
                                 </span>
+                                <!-- Maybe add rating number beside stars later -->
                         </div>
                         <p class="review-comment">{{ review.comment || 'No comment provided.' }}</p>
                         <p class="review-meta">
                             By {{ review.userName || 'User ' + review.userId.substring(0, 6) }}
-                            on {{ review.reviewDate | date:'mediumDate' }}
+                            on {{ review.reviewDate | date:'mediumDate' }} <!-- Use DatePipe -->
                         </p>
                     </div>
                 </div>
@@ -159,176 +166,278 @@
                 </ng-template>
             </div>
         </div>
-        <!-- *** End Review List Display *** -->
+        <!-- End Review List Display -->
 
     </section>
     <!-- End Reviews Section -->
 
+
     <!-- Fallback if product is null -->
-    <!-- ... -->
+    <div *ngIf="!product && !isLoading && !error" class="error-message">
+        <p>Product details could not be loaded.</p><a routerLink="/products">Back to Products</a>
+    </div>
 
 </div> <!-- End Page Container -->
 
 
 <!-- Styles -->
 <style>
-    /* ... Keep existing styles ... */
-    /* Add/Update styles for review form and list */
-    .reviews-section {
-        margin-top: 2.5em;
-        padding-top: 1.5em;
+    /* --- General & Layout --- */
+    .product-detail-page {
+        padding: 1.5em;
+        max-width: 1200px;
+        margin: auto;
+    }
+
+    .back-link {
+        margin-bottom: 1em;
+        font-size: 0.9em;
+    }
+
+    .loading,
+    .error-message {
+        text-align: center;
+        padding: 3em;
+        color: #777;
+    }
+
+    .error-message {
+        color: red;
+    }
+
+    hr.divider-light {
+        margin: 0.8em 0;
+        border: 0;
         border-top: 1px solid #eee;
     }
 
-    .reviews-section h3 {
-        margin-bottom: 1em;
-        font-size: 1.4em;
-        color: #333;
+    hr.divider-heavy {
+        margin: 2em 0;
+        border: 0;
+        border-top: 1px solid #ccc;
     }
 
-    .reviews-section h4 {
-        margin-top: 1.5em;
-        margin-bottom: 1em;
-        font-size: 1.2em;
-        color: #444;
-    }
-
-    .review-actions {
-        margin-bottom: 1.5em;
-    }
-
-    .write-review-button {
-        padding: 0.6em 1em;
-        background-color: #5a6268;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 0.9em;
-    }
-
-    .write-review-button:hover {
-        background-color: #474d52;
-    }
-
-    .review-form {
-        border: 1px solid #ddd;
-        padding: 1.5em;
-        border-radius: 5px;
-        background-color: #fdfdfd;
+    /* --- Main 3-Column Grid --- */
+    .product-main-grid {
+        display: grid;
+        /* Define columns - adjust fractions as needed */
+        /* Example: Image | Main Info | Buy Box */
+        grid-template-columns: 0.7fr 1.5fr 0.8fr;
+        gap: 2em;
+        /* Gap between columns */
         margin-bottom: 2em;
-        animation: fadeIn 0.3s ease-out;
     }
 
-    .review-form .form-group {
-        margin-bottom: 1.2em;
-    }
-
-    .review-form label {
-        display: block;
-        margin-bottom: 0.4em;
-        font-weight: bold;
-        font-size: 0.9em;
-    }
-
-    .review-form select,
-    .review-form textarea {
+    /* --- Column 1: Gallery --- */
+    .product-gallery .main-image {
         width: 100%;
-        max-width: 500px;
-        /* Limit width */
-        padding: 0.6em;
-        border: 1px solid #ccc;
+        height: auto;
+        border: 1px solid #ddd;
         border-radius: 4px;
-        font-size: 0.95em;
-        box-sizing: border-box;
     }
 
-    .review-form textarea {
-        resize: vertical;
-        min-height: 80px;
+    /* --- Column 2: Info --- */
+    .product-info-main {
+        /* Middle column */
     }
 
-    .submit-review-button {
-        padding: 0.7em 1.5em;
-        background-color: #007bff;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: bold;
-        font-size: 1em;
+    .product-title {
+        font-size: 1.6em;
+        margin: 0 0 0.2em 0;
+        font-weight: 600;
+    }
+
+    .product-rating-summary {
+        /* Keep existing styles */
+        margin-bottom: 0.5em;
+    }
+
+    .price-section {
+        margin: 0.8em 0;
+    }
+
+    .price-label {
+        font-size: 0.9em;
+        color: #555;
         margin-right: 0.5em;
     }
 
-    .submit-review-button:hover {
-        background-color: #0056b3;
+    .product-price {
+        font-size: 1.5em;
+        font-weight: bold;
+        color: #B12704;
+        /* Amazon-like price color */
     }
 
-    .submit-review-button[disabled] {
-        background-color: #cccccc;
-        cursor: not-allowed;
-    }
-
-    .cancel-review-button {
-        padding: 0.7em 1.5em;
-        background-color: #f1f1f1;
-        color: #333;
-        border: 1px solid #ccc;
+    .variant-selection {
+        margin: 1em 0;
+        padding: 0.8em;
+        background-color: #f3f3f3;
         border-radius: 4px;
-        cursor: pointer;
-        font-size: 1em;
+        font-size: 0.9em;
+        color: #666;
     }
 
-    .cancel-review-button:hover {
-        background-color: #e0e0e0;
+    .product-meta {
+        font-size: 0.9em;
+        color: #555;
     }
 
-    .error {
-        color: red;
-        font-size: 0.85em;
-        margin-top: 0.3em;
+    .product-meta span {
+        margin-right: 1.5em;
     }
 
-    .submit-error {
-        margin-top: 1em;
+    /* --- Column 3: Purchase Box --- */
+    .product-purchase-box {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 1.2em;
+        background-color: #f9f9f9;
+        /* Light background */
+    }
+
+    .price-box-price {
+        font-size: 1.4em;
+        font-weight: bold;
+        color: #B12704;
+        margin-bottom: 0.5em;
+    }
+
+    .delivery-info {
+        font-size: 0.9em;
+        color: #555;
+        margin-bottom: 0.8em;
+    }
+
+    .stock-status {
+        font-size: 1.1em;
+        color: #007600;
+        /* Green for 'In Stock' */
+        margin-bottom: 1em;
         font-weight: bold;
     }
 
-    .review-list {
-        margin-top: 1.5em;
-    }
-
-    .review-list h4 {
-        border-bottom: 1px solid #eee;
-        padding-bottom: 0.5em;
+    .quantity-selector {
+        display: flex;
+        align-items: center;
+        gap: 0.5em;
         margin-bottom: 1em;
     }
 
-    .review-item {
+    .quantity-selector label {
+        font-size: 0.9em;
+    }
+
+    .quantity-selector input {
+        width: 50px;
+        padding: 0.4em;
+        text-align: center;
+    }
+
+    .add-to-cart-button {
+        /* Keep existing styles, ensure width 100% */
+        width: 100%;
+        padding: 0.7em;
+        font-size: 1em;
+    }
+
+    /* .buy-now-button { width: 100%; padding: 0.7em; font-size: 1em; background-color: #FFA41C; border-color: #FF8F00; ...} */
+
+    /* --- Details Section (Below Grid) --- */
+    .product-details-section {
+        margin-top: 1em;
+    }
+
+    .product-details-section h3 {
+        margin-bottom: 0.8em;
+        font-size: 1.2em;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 0.4em;
+    }
+
+    .product-specs {
+        font-size: 0.95em;
+        width: 100%;
+        max-width: 600px;
+        margin-bottom: 1.5em;
+    }
+
+    .product-specs th,
+    .product-specs td {
+        padding: 0.5em;
         border-bottom: 1px solid #eee;
-        padding: 1.5em 0;
     }
 
-    .review-item:last-child {
-        border-bottom: none;
+    .product-specs th {
+        background-color: #f8f9fa;
+        text-align: left;
+        font-weight: 600;
+        width: 30%;
     }
 
-    .review-rating .stars {
-        color: #f8a02b;
-        font-size: 1.1em;
-    }
-
-    .review-comment {
-        margin: 0.5em 0;
+    .product-description p {
         line-height: 1.6;
-        white-space: pre-wrap;
-        /* Preserve whitespace/newlines */
+        color: #333;
     }
 
-    .review-meta {
-        font-size: 0.85em;
-        color: #777;
-        font-style: italic;
-        margin-top: 0.8em;
+    /* --- Reviews Section (Keep styles from previous step) --- */
+    .reviews-section {
+        /* ... */
+    }
+
+    /* --- Responsive --- */
+    @media (max-width: 992px) {
+
+        /* Adjust breakpoint */
+        .product-main-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        /* Image | Info+BuyBox */
+        .product-purchase-box {
+            grid-column: 2 / 3;
+            grid-row: 1 / 2;
+            border: none;
+            padding: 0;
+            background: none;
+            box-shadow: none;
+        }
+
+        /* Move buy box below info */
+        .product-info-main {
+            grid-column: 2 / 3;
+            grid-row: 1 / 2;
+        }
+
+        /* Keep info in second col */
+        .product-gallery {
+            grid-column: 1 / 2;
+            grid-row: 1 / 2;
+        }
+
+        /* Keep gallery in first col */
+    }
+
+    @media (max-width: 768px) {
+        .product-main-grid {
+            grid-template-columns: 1fr;
+        }
+
+        /* Stack all */
+        .product-gallery,
+        .product-info-main,
+        .product-purchase-box {
+            grid-column: 1 / -1;
+        }
+
+        /* Make all full width */
+        .product-purchase-box {
+            border: 1px solid #ccc;
+            padding: 1.2em;
+            background-color: #f9f9f9;
+            margin-top: 1em;
+        }
+
+        /* Add border back */
     }
 </style>

@@ -5,7 +5,15 @@ meta {
 }
 
 post {
-  url: http://localhost:5054/api/products/26/reviews
-  body: none
-  auth: inherit
+  url: http://localhost:5054/api/products/27/reviews
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIyNzMyNWYyMC1mNWJlLTQ1MTMtOTI5YS0yZmJhNzcxYzczMDYiLCJ1bmlxdWVfbmFtZSI6InRlc3R1c2VyIiwiZW1haWwiOiJ0ZXN0QGV4YW1wbGUuY29tIiwibmJmIjoxNzQ1ODcxODQwLCJleHAiOjE3NDY0NzY2NDAsImlhdCI6MTc0NTg3MTg0MCwiaXNzIjoiTWVyY2hXZWJzaXRlQVBJIiwiYXVkIjoiTWVyY2hXZWJzaXRlQVBJIn0.Qhy8rD0Ou2MDiJpOMgNTTBSV3AOkHRWEy6asNZfaENdr_f2l8t9QIQGNE6Cz3KORChDAc7pizwDVoLH-Ztbr8A
+}
+
+body:json {
+  {"rating": 5, "comment": "This t-shirt is truly awesome!"}
 }

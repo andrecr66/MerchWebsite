@@ -6,6 +6,17 @@ meta {
 
 post {
   url: http://localhost:5054/api/cart/items
-  body: none
-  auth: inherit
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIyNzMyNWYyMC1mNWJlLTQ1MTMtOTI5YS0yZmJhNzcxYzczMDYiLCJ1bmlxdWVfbmFtZSI6InRlc3R1c2VyIiwiZW1haWwiOiJ0ZXN0QGV4YW1wbGUuY29tIiwibmJmIjoxNzQ1MzQ5NTMwLCJleHAiOjE3NDU5NTQzMzAsImlhdCI6MTc0NTM0OTUzMCwiaXNzIjoiTWVyY2hXZWJzaXRlQVBJIiwiYXVkIjoiTWVyY2hXZWJzaXRlQVBJIn0.GrAEuWdXG4KVddgR7DadKBzzFNc1pz4wU9SPzrLnoHmaY0NC6cObCKweI97Hm7V_acemoft0bK6hqb3JBVLslQ
+}
+
+body:json {
+  {
+    "productId": 1, // Use a valid Product ID from your DB
+    "quantity": 1
+  }
 }

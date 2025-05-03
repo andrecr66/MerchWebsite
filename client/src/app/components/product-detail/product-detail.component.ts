@@ -14,13 +14,13 @@ import { AddCartItemDto } from '../../models/cart/add-cart-item.dto';
 import { Review } from '../../models/review/review.model';
 import { CreateReviewDto } from '../../models/review/create-review.dto';
 import { OrderDto } from '../../models/order/order.dto'; // Ensure OrderDto is imported if used (needed for submitReview->reloadProductData->next type)
-
+import { FormsModule } from '@angular/forms'; // <<< Ensure FormsModule is imported for ngModel
 
 @Component({
   selector: 'app-product-detail',
   standalone: true,
   // Updated imports
-  imports: [CommonModule, RouterLink, ReactiveFormsModule],
+  imports: [CommonModule, RouterLink, ReactiveFormsModule, FormsModule],
   templateUrl: './product-detail.component.html',
   styleUrls: ['./product-detail.component.css']
 })
@@ -37,6 +37,8 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   product: Product | null = null;
   isLoading = true; // Start in loading state
   error: string | null = null;
+
+  selectedQuantity: number = 1;
 
   // State for Reviews
   reviews: Review[] = [];
@@ -91,7 +93,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
           tap(productData => {
             if (productData) {
               console.log('Product data loaded, now fetching reviews.');
-              this.loadReviews(productData.id); // <<< UNCOMMENT THIS LINE
+              this.loadReviews(productData.id); // <<< UNCOMMENT
             }
           }),
           catchError(err => { // Catch errors from getProductById ONLY
@@ -180,7 +182,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
           // Or potentially just reload reviews if backend returns updated product
           if (this.product) {
             this.reloadProductData(this.product.id);
-            this.loadReviews(this.product.id); // <<< UNCOMMENT THIS LINE
+            this.loadReviews(this.product.id); // <<< UNCOMMENT
           }
         },
         error: (err) => {
@@ -215,19 +217,27 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
       console.error('Cannot add to cart, product data is not loaded.');
       return;
     }
-    console.log(`Adding product ${this.product.id} (${this.product.name}) to cart from detail page`);
+    // Basic validation for quantity
+    if (this.selectedQuantity < 1 || !Number.isInteger(this.selectedQuantity)) {
+      alert('Please enter a valid quantity (at least 1).');
+      this.selectedQuantity = 1; // Reset to default
+      return;
+    }
+
+    console.log(`Adding product ${this.product.id} (${this.product.name}) - Quantity: ${this.selectedQuantity} to cart`);
+
     const itemToAdd: AddCartItemDto = {
       productId: this.product.id,
-      quantity: 1 // Default to 1 from detail page, could add quantity selector later
+      quantity: this.selectedQuantity // <<< Use the selected quantity
     };
 
-    // Unsubscribe from previous add attempt if any
     this.addToCartSubscription?.unsubscribe();
-
     this.addToCartSubscription = this.cartService.addItem(itemToAdd).subscribe({
       next: (updatedCart) => {
         console.log('Product added successfully from detail page, new cart:', updatedCart);
-        alert(`${this.product?.name} added to cart!`); // Simple feedback
+        alert(`${this.selectedQuantity} x ${this.product?.name} added to cart!`); // Updated alert
+        // Optional: Reset quantity after adding?
+        // this.selectedQuantity = 1;
       },
       error: (err) => {
         console.error(`Error adding product ${this.product?.id} to cart:`, err);
@@ -235,6 +245,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
       }
     });
   }
+  // --- END Modify addToCart Method ---
   get rating() { return this.reviewForm.get('rating'); }
   get comment() { return this.reviewForm.get('comment'); }
 

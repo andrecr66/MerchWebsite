@@ -7,5 +7,9 @@ meta {
 get {
   url: http://localhost:5054/api/orders
   body: none
-  auth: inherit
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIyNzMyNWYyMC1mNWJlLTQ1MTMtOTI5YS0yZmJhNzcxYzczMDYiLCJ1bmlxdWVfbmFtZSI6InRlc3R1c2VyIiwiZW1haWwiOiJ0ZXN0QGV4YW1wbGUuY29tIiwibmJmIjoxNzQ1OTU5MDk5LCJleHAiOjE3NDY1NjM4OTksImlhdCI6MTc0NTk1OTA5OSwiaXNzIjoiTWVyY2hXZWJzaXRlQVBJIiwiYXVkIjoiTWVyY2hXZWJzaXRlQVBJIn0.UU3DRIsH_H2kUsRZwiijhf8WYMM_6t8de4gnFmkcdV9kYpzU-uW5_1ontvF_sYpHodZNhNdEIn5bY7tEslJZOA
 }
